@@ -1,0 +1,7 @@
+**/node_modules
+**/bin
+**/coverage
+**/dist
+**/.idea
+**/tests
+yarn-error.log

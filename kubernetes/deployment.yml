@@ -1,0 +1,86 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: casperdata-parser
+  name: casperdata-parser
+spec:
+  selector:
+    matchLabels:
+      app: casperdata-parser
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: casperdata-parser
+        name: casperdata-parser
+    spec:
+      containers:
+        - name: casperdata-parser
+          image: killianh/casperdata
+          imagePullPolicy: Always
+          resources: { }
+          envFrom:
+            - configMapRef:
+                name: casperdata-config
+      restartPolicy: Always
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: casperdata
+  name: casperdata
+spec:
+  selector:
+    matchLabels:
+      app: casperdata
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: casperdata
+        name: casperdata
+    spec:
+      containers:
+        - name: casperdata
+          image: postgrest/postgrest:v8.0.0.20211102
+          ports:
+            - containerPort: 3000
+          imagePullPolicy: Always
+          resources: { }
+          envFrom:
+            - configMapRef:
+                name: postgrest-config
+      restartPolicy: Always
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: casperdata-db
+  name: casperdata-db
+spec:
+  selector:
+    matchLabels:
+      app: casperdata-db
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: casperdata-db
+        name: casperdata-db
+    spec:
+      containers:
+        - name: casperdata-db
+          image: postgres:latest
+          ports:
+            - containerPort: 5432
+          env:
+            - name: POSTGRES_HOST_AUTH_METHOD
+              value: "trust"
+            - name: POSTGRES_DB
+              value: "casperdata"

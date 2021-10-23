@@ -1,0 +1,16 @@
+{
+  "extends": "@tsconfig/recommended/tsconfig.json",
+  "compilerOptions": {
+    "allowJs": true,
+    "outDir": "dist",
+  },
+  "include": [
+    "src/**/*.ts",
+  ],
+  "files": [
+    "src/entrypoint.ts"
+  ],
+  "exclude": [
+    "node_modules"
+  ]
+}

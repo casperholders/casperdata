@@ -1,0 +1,9 @@
+config/*
+coverage/*
+dist/*
+migrations/*
+models/*
+node_modules/*
+seeders/*
+.eslintrc.js
+jest.config.js
