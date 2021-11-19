@@ -2,6 +2,34 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   labels:
+    app: casperdata-parser
+  name: casperdata-parser
+spec:
+  selector:
+    matchLabels:
+      app: casperdata-parser
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: casperdata-parser
+        name: casperdata-parser
+    spec:
+      containers:
+        - name: casperdata-parser
+          image: killianh/casperdata
+          imagePullPolicy: Always
+          resources: { }
+          envFrom:
+            - configMapRef:
+                name: casperdata-config
+      restartPolicy: Always
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
     app: casperdata
   name: casperdata
 spec:
