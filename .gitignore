@@ -6,3 +6,5 @@ tests/**/*.js
 coverage/
 
 bin/
+
+backup/

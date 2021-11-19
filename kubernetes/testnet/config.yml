@@ -1,0 +1,23 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: casperdata-config
+data:
+  DATABASE_URL: "postgres://postgres@casperdata-db-service:5432/casperdata"
+  LIMIT_BULK_INSERT: "5000"
+  BASE_RANDOM_THROTTLE_NUMBER: "10"
+  RPC_URL: "http://176.9.125.5:8500/rpc"
+  LOOP: "60"
+  NODE_ENV: "production"
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: postgrest-config
+data:
+  PGRST_DB_URI: "postgres://postgres@casperdata-db-service:5432/casperdata"
+  PGRST_DB_SCHEMA: "public"
+  PGRST_DB_ANON_ROLE: "postgres"
+  OPENAPI_MODE: "ignore-privileges"
+  OPENAPI_SERVER_PROX_URI: "https://data.testnet.casperholders.com/swagger"
+  MAX_ROWS: "100"
