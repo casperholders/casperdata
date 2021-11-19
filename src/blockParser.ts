@@ -199,6 +199,7 @@ export default class BlockParser {
         if (blockCount % this.config.limitBulkInsert === 0) {
           blockSpinner.text = `Block validated ${blockCount} out of ${unvalidatedBlocks.length}. Waiting for all of them to be parsed and bulk insert them into the DB.`;
           await Promise.all(promises);
+          await this.deployParser.parseAllDeploys();
           await this.blocks.bulkCreate();
           await this.deploys.bulkCreate();
         }
