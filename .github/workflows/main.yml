@@ -55,6 +55,18 @@ jobs:
           config: ${{ secrets.KUBE_CONFIG }}
           command: apply -k kubernetes/mainnet/
 
+      - name: Production - Restart deployment
+        uses: steebchen/kubectl@v2.0.0
+        with:
+          config: ${{ secrets.KUBE_CONFIG }}
+          command: rollout restart deployment/casperdata-parser --namespace=casperdata
+
+      - name: Production - Restart deployment
+        uses: steebchen/kubectl@v2.0.0
+        with:
+          config: ${{ secrets.KUBE_CONFIG }}
+          command: rollout restart deployment/casperdata --namespace=casperdata
+
       - name: Production - Update deployment
         uses: steebchen/kubectl@v2.0.0
         with:
