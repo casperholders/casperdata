@@ -1,5 +1,7 @@
 const { Sequelize } = require('sequelize');
 
+const name = '20210831203931-create-deploy.js';
+
 async function up({ context: queryInterface }) {
   await queryInterface.createTable('deploys', {
     hash: {
@@ -40,4 +42,4 @@ async function down({ context: queryInterface }) {
   await queryInterface.dropTable('deploys');
 }
 
-module.exports = { up, down };
+module.exports = { name, up, down };

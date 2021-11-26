@@ -7,6 +7,9 @@ import Config from './Config';
 import yargs = require('yargs');
 
 const { Umzug, SequelizeStorage } = require('umzug');
+const blockMigration = require('../migrations/20210831193231-create-block');
+const deployMigration = require('../migrations/20210831203931-create-deploy');
+const fullStatsMigration = require('../migrations/20211126003309-full_stats');
 require('dotenv').config();
 
 const parser = yargs(process.argv.slice(2)).options({
@@ -28,7 +31,11 @@ const parser = yargs(process.argv.slice(2)).options({
 const { sequelize } = require('../models');
 
 const umzug = new Umzug({
-  migrations: { glob: 'migrations/*.js' },
+  migrations: [
+    blockMigration,
+    deployMigration,
+    fullStatsMigration,
+  ],
   context: sequelize.getQueryInterface(),
   storage: new SequelizeStorage({ sequelize }),
   logger: console,

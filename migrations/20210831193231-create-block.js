@@ -1,6 +1,8 @@
 'use strict';
 const { Sequelize } = require('sequelize');
 
+const name = '20210831193231-create-block.js';
+
 async function up({ context: queryInterface }) {
   await queryInterface.createTable('blocks', {
     hash: {
@@ -20,4 +22,4 @@ async function down({ context: queryInterface }) {
   await queryInterface.dropTable('blocks');
 }
 
-module.exports = { up, down };
+module.exports = { name, up, down };
