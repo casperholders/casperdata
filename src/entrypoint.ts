@@ -3,9 +3,10 @@ import { CasperClient, CasperServiceByJsonRPC } from 'casper-js-sdk';
 import DeployParser from './deployParser';
 import Blocks from './services/Blocks';
 import BlockParser from './blockParser';
-import yargs = require('yargs');
 import Config from './Config';
+import yargs = require('yargs');
 
+const { Umzug, SequelizeStorage } = require('umzug');
 require('dotenv').config();
 
 const parser = yargs(process.argv.slice(2)).options({
@@ -24,7 +25,14 @@ const parser = yargs(process.argv.slice(2)).options({
   },
 });
 
-const models = require('../models');
+const { sequelize } = require('../models');
+
+const umzug = new Umzug({
+  migrations: { glob: 'migrations/*.js' },
+  context: sequelize.getQueryInterface(),
+  storage: new SequelizeStorage({ sequelize }),
+  logger: console,
+});
 
 function parseLoop(blockParser: BlockParser, interval: number) {
   setTimeout(async () => {
@@ -36,7 +44,7 @@ function parseLoop(blockParser: BlockParser, interval: number) {
 
 (async () => {
   const argv = await parser.argv;
-  await models.sequelize.sync();
+  await umzug.up();
   const deploys = new Deploys();
 
   if (argv.rpc !== undefined || process.env.RPC_URL !== undefined) {

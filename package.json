@@ -37,6 +37,7 @@
     "pg-hstore": "^2.3.4",
     "sequelize": "^6.6.5",
     "threads": "^1.7.0",
+    "umzug": "^3.0.0-beta.16",
     "yargs": "^17.2.1"
   },
   "pkg": {
