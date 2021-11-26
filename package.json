@@ -42,7 +42,8 @@
   },
   "pkg": {
     "assets": [
-      "./models/*"
+      "./models/*",
+      "./migrations/*"
     ],
     "scripts": "dist/**/*.js",
     "targets": [
