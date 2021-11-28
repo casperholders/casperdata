@@ -84,3 +84,37 @@ spec:
               value: "trust"
             - name: POSTGRES_DB
               value: "casperdata"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: casperbackup
+  name: casperbackup
+spec:
+  selector:
+    matchLabels:
+      app: casperbackup
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: casperbackup
+        name: casperbackup
+    spec:
+      containers:
+        - name: casperbackup
+          image: nginx:latest
+          ports:
+            - containerPort: 80
+              volumeMounts:
+                - mountPath: /usr/share/nginx/html
+                  name: postgres-storage
+          restartPolicy: Never
+          volumes:
+            - name: postgres-storage
+              hostPath:
+                # Ensure the file directory is created.
+                path: /var/volumes/postgres-backups-mainnet
+                type: DirectoryOrCreate

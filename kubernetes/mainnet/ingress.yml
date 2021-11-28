@@ -30,3 +30,35 @@ spec:
       services:
         - name: casperdata-service
           port: 80
+---
+apiVersion: traefik.containo.us/v1alpha1
+kind: IngressRoute
+metadata:
+  name: casperbackup-tls
+spec:
+  entryPoints:
+    - secure
+  routes:
+    - match: Host(`backup.casperholders.io`)
+      kind: Rule
+      services:
+        - name: casperbackup-service
+          port: 80
+  tls:
+    secretName: casperbackup-cert
+---
+apiVersion: traefik.containo.us/v1alpha1
+kind: IngressRoute
+metadata:
+  name: casperbackup-http
+spec:
+  entryPoints:
+    - web
+  routes:
+    - match: Host(`backup.casperholders.io`)
+      middlewares:
+        - name: https-only
+      kind: Rule
+      services:
+        - name: casperbackup-service
+          port: 80

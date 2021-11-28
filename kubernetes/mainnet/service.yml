@@ -24,3 +24,16 @@ spec:
       targetPort: 5432
   selector:
     app: casperdata-db
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: casperbackup-service
+spec:
+  ports:
+    - name: casperbackup-service
+      protocol: TCP
+      port: 80
+      targetPort: 80
+  selector:
+    app: casperbackup
