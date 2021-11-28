@@ -111,10 +111,16 @@ spec:
           volumeMounts:
             - mountPath: /usr/share/nginx/html
               name: postgres-storage
+            - mountPath: /etc/nginx/conf.d/default.conf
+              subPath: default.conf
+              name: nginx-volume
       volumes:
         - name: postgres-storage
           hostPath:
             # Ensure the file directory is created.
             path: /var/volumes/postgres-backups-mainnet
             type: DirectoryOrCreate
+        - name: nginx-volume
+          configMap:
+            name: nginx-config
       restartPolicy: Always
