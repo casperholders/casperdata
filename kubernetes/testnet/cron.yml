@@ -1,0 +1,26 @@
+apiVersion: batch/v1beta1
+kind: CronJob
+metadata:
+  name: postgres-backup-testnet
+spec:
+  # Backup the database every day at 2AM
+  schedule: "0 2 * * *"
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+            - name: postgres-backup
+              image: postgres:12
+              command: ["/bin/sh"]
+              args: ["-c", 'pg_dump -U postgres -h casperdata-db-service casperdata > /var/backups/backup-testnet-$(date +"%m-%d-%Y-%H-%M").sql']
+              volumeMounts:
+                - mountPath: /var/backups
+                  name: postgres-storage
+          restartPolicy: Never
+          volumes:
+            - name: postgres-storage
+              hostPath:
+                # Ensure the file directory is created.
+                path: /var/volumes/postgres-backups-testnet
+                type: DirectoryOrCreate

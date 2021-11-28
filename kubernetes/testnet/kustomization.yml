@@ -6,5 +6,6 @@ resources:
   - service.yml
   - ingress.yml
   - certificate.yml
+  - cron.yml
 
 namespace: casperdata-testnet
