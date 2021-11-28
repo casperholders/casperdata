@@ -11,7 +11,7 @@ spec:
         spec:
           containers:
             - name: postgres-backup
-              image: postgres:12
+              image: postgres:latest
               command: ["/bin/sh"]
               args: ["-c", 'pg_dump -U postgres -h casperdata-db-service casperdata > /var/backups/backup-mainnet-$(date +"%m-%d-%Y-%H-%M").sql']
               volumeMounts:
