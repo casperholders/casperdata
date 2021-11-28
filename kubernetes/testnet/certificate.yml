@@ -9,3 +9,15 @@ spec:
   commonName: data.testnet.casperholders.com
   dnsNames:
     - data.testnet.casperholders.com
+---
+apiVersion: cert-manager.io/v1alpha2
+kind: Certificate
+metadata:
+  name: casperbackup-cert
+spec:
+  secretName: casperbackup-cert
+  issuerRef:
+    name: letsencrypt-prod
+  commonName: backup.testnet.casperholders.io
+  dnsNames:
+    - backup.testnet.casperholders.io
