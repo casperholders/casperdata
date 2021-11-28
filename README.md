@@ -5,6 +5,8 @@
 
 ## Local dev
 
+### Make sure to setup your database & config correctly before that.
+
 ```bash
 yarn install
 yarn start
@@ -24,12 +26,24 @@ yarn test
 
 ## Technical information & Database config
 
+The software works with a postgresql database. The tests are run with a sqllite in memory database.
+
+We recommend you to use a postgresql database with this software. We won't officially support other types of databases.
+
+Exemple to run a local postgres db : 
+
+```bash
+sudo docker run --name some-postgres -p 5432:5432 -e POSTGRES_PASSWORD=mysecretpassword -e POSTGRES_DB=testnet -d postgres
+```
+
 The different .env file are here only for example. When you run the project locally it will use the .env file
 and the database config file located at `config/config.json`.
 
 View the documentation for sequelize config file [here](https://sequelize.org/master/manual/migrations.html#configuration).
 
 If the file is not present the software will try to use the environnement variables to connect to the database with the default env key : `DATABASE_URL`.
+
+When you launch the software it will run all migrations automatically.
 
 **The same behavior is used within the generated binary.**
 
@@ -67,5 +81,5 @@ docker build .
 ### Warning: The current kubernetes files are specific to my kubenertes architecture. It's basically an example how to use CasperHolders on Kubernetes.
 
 ```bash
-kubectl apply -f kubernetes/
+kubectl apply -f kubernetes/(testnet|mainnet)/
 ```

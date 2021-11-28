@@ -2,6 +2,10 @@ import { Deploy } from 'casper-js-sdk/dist/lib/DeployUtil';
 import { GetDeployResult } from 'casper-js-sdk';
 import Helper from '../../helper';
 
+/**
+ * ERC20 class
+ * Represent the creation of an ERC20 token
+ */
 export default class ERC20 {
   static parseData(
     deploy: [Deploy, GetDeployResult],

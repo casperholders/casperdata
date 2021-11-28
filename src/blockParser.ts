@@ -175,10 +175,16 @@ export default class BlockParser {
     await this.deployParser.parseAllDeploys();
   }
 
+  /**
+   * Find missing blocks
+   */
   findMissingBlock() {
     return models.sequelize.query('SELECT generate_series( (SELECT MIN(height) FROM "blocks"), (SELECT MAX(height) FROM "blocks") ) AS missing EXCEPT SELECT height FROM "blocks" ORDER BY missing ASC;', { type: QueryTypes.SELECT });
   }
 
+  /**
+   * Validate all blocks
+   */
   async validateBlocks() {
     const unvalidatedBlocks = await models.Block.findAll({
       where: {
@@ -218,6 +224,10 @@ export default class BlockParser {
     }
   }
 
+  /**
+   * Validate a given block. Search in the db if all transfers are present in the db.
+   * @param block
+   */
   async validateBlock(block: any) {
     try {
       const blockFetch = (await this.fetchBlock(block.height)) as any;

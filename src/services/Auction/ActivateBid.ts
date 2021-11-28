@@ -2,6 +2,10 @@ import { Deploy } from 'casper-js-sdk/dist/lib/DeployUtil';
 import { GetDeployResult } from 'casper-js-sdk';
 import Helper from '../../helper';
 
+/**
+ * ActivateBid class
+ * Represent a deploy used to activate a validator bid
+ */
 export default class ActivateBid {
   static parseData(
     deploy: [Deploy, GetDeployResult],

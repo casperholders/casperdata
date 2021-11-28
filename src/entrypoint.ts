@@ -12,6 +12,9 @@ const deployMigration = require('../migrations/20210831203931-create-deploy');
 const fullStatsMigration = require('../migrations/20211126003309-full_stats');
 require('dotenv').config();
 
+/**
+ * Args available with the software. You can find them when you provide the --help option.
+ */
 const parser = yargs(process.argv.slice(2)).options({
   rpc: { type: 'string', describe: 'Set the casper node rpc url' },
   limitBulkInsert: {
@@ -41,6 +44,11 @@ const umzug = new Umzug({
   logger: console,
 });
 
+/**
+ * Used to loop parse all blocks for a given interval
+ * @param blockParser
+ * @param interval
+ */
 function parseLoop(blockParser: BlockParser, interval: number) {
   setTimeout(async () => {
     await blockParser.parseAllBlocks();
@@ -49,6 +57,10 @@ function parseLoop(blockParser: BlockParser, interval: number) {
   }, interval * 1000);
 }
 
+/**
+ * Main function as an entrypoint
+ * Will run all migrations & launch the parse all blocks function.
+ */
 (async () => {
   const argv = await parser.argv;
   await umzug.up();

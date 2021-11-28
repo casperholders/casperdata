@@ -2,6 +2,10 @@ import { Deploy } from 'casper-js-sdk/dist/lib/DeployUtil';
 import { GetDeployResult } from 'casper-js-sdk';
 import Helper from '../../helper';
 
+/**
+ * Undelegate class
+ * Represent an undelegation on the network
+ */
 export default class Undelegate {
   static parseData(
     deploy: [Deploy, GetDeployResult],

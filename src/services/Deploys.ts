@@ -4,6 +4,10 @@ import Helper from '../helper';
 
 const models = require('../../models');
 
+/**
+ * Deploys class
+ * Contains static types of deploys
+ */
 export default class Deploys {
   static TRANSFER = 'transfer';
 
@@ -37,6 +41,9 @@ export default class Deploys {
 
   static FAUCET = 'faucet';
 
+  /**
+   * Contains all the data of parsed deploys
+   */
   data: {
     hash: string;
     from: string;
@@ -48,6 +55,13 @@ export default class Deploys {
     data: object;
   }[] = [];
 
+  /**
+   * Parse a deploy and insert it in the data object.
+   * @param deploy
+   * @param blockHash
+   * @param type
+   * @param deployData
+   */
   parseDeployData(
     deploy: [Deploy, GetDeployResult],
     blockHash: string,
@@ -72,6 +86,9 @@ export default class Deploys {
     }
   }
 
+  /**
+   * Bulk insert or update with the given data contained in the data object.
+   */
   async bulkCreate() {
     await models.Deploy.bulkCreate(this.data, {
       fields: ['hash', 'from', 'cost', 'result', 'timestamp', 'block', 'type', 'data'],

@@ -2,6 +2,10 @@ import { Deploy } from 'casper-js-sdk/dist/lib/DeployUtil';
 import { GetDeployResult } from 'casper-js-sdk';
 import Helper from '../../helper';
 
+/**
+ * KeyManagement class
+ * Represent an action to modify key thresholds
+ */
 export default class KeyManagement {
   static parseData(
     deploy: [Deploy, GetDeployResult],
