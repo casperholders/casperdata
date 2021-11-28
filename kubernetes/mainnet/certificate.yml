@@ -18,6 +18,6 @@ spec:
   secretName: casperbackup-cert
   issuerRef:
     name: letsencrypt-prod
-  commonName: backup.casperholders.com
+  commonName: backup.casperholders.io
   dnsNames:
-    - backup.casperholders.com
+    - backup.casperholders.io
