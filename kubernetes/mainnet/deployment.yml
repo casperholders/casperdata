@@ -108,13 +108,13 @@ spec:
           image: nginx:latest
           ports:
             - containerPort: 80
-              volumeMounts:
-                - mountPath: /usr/share/nginx/html
-                  name: postgres-storage
-          restartPolicy: Never
-          volumes:
-            - name: postgres-storage
-              hostPath:
-                # Ensure the file directory is created.
-                path: /var/volumes/postgres-backups-mainnet
-                type: DirectoryOrCreate
+          volumeMounts:
+            - mountPath: /usr/share/nginx/html
+              name: postgres-storage
+      volumes:
+        - name: postgres-storage
+          hostPath:
+            # Ensure the file directory is created.
+            path: /var/volumes/postgres-backups-mainnet
+            type: DirectoryOrCreate
+      restartPolicy: Always
