@@ -1,6 +1,16 @@
 # CasperData a Casper Blockchain parser
 [![codecov](https://codecov.io/gh/casperholders/casperdata/branch/main/graph/badge.svg?token=J111YFA2Q3)](https://codecov.io/gh/casperholders/casperdata)
 
+# Next features
+
+[ ] Staking rewards
+
+[ ] Validator downtime
+
+[ ] MAKE Account info cache
+
+[ ] ERC20 Full support
+
 # How to build
 
 ## Local dev
@@ -44,6 +54,8 @@ View the documentation for sequelize config file [here](https://sequelize.org/ma
 If the file is not present the software will try to use the environnement variables to connect to the database with the default env key : `DATABASE_URL`.
 
 When you launch the software it will run all migrations automatically.
+
+If you want to speed up the process you can find daily backups here : [mainnet](https://backup.casperholders.io/) / [testnet](https://backup.testnet.casperholders.io/)
 
 **The same behavior is used within the generated binary.**
 
