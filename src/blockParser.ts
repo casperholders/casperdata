@@ -64,8 +64,14 @@ export default class BlockParser {
         },
       });
       if (blockToFetch) {
-        return (await this.casperServiceByJsonRPC.getBlockInfo(blockToFetch.hash)).block;
+        try {
+          return (await this.casperServiceByJsonRPC.getBlockInfo(blockToFetch.hash)).block;
+        } catch (error) {
+          console.log(`Cannot fetch block ${blockToFetch.hash}`);
+          throw error;
+        }
       }
+      console.log(`Cannot fetch block ${height}`);
       throw e;
     }
   }
