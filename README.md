@@ -3,7 +3,8 @@
 
 # Bugs
 
-- Casper JS SDK doesn't support all types conversion to toBytes for now so some deploy can't be parsed. (70~ in testnet & 2~ in mainnet)
+- Casper JS SDK doesn't support all types conversion to toBytes for now so some deploy can't be parsed.
+(70~ in testnet & 2~ in mainnet). The next release of the software will self-heal when the SDK will support those types.
 
 # Next features
 
