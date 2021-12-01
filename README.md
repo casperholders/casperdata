@@ -1,6 +1,10 @@
 # CasperData a Casper Blockchain parser
 [![codecov](https://codecov.io/gh/casperholders/casperdata/branch/main/graph/badge.svg?token=J111YFA2Q3)](https://codecov.io/gh/casperholders/casperdata)
 
+# Bugs
+
+- Casper JS SDK doesn't support all types conversion to toBytes for now so some deploy can't be parsed. (70~ in testnet & 2~ in mainnet)
+
 # Next features
 
 [ ] Staking rewards

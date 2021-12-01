@@ -13,7 +13,7 @@ spec:
             - name: postgres-backup-testnet
               image: postgres:latest
               command: ["/bin/sh"]
-              args: ["-c", 'pg_dump -U postgres -h casperdata-db-service casperdata > /var/backups/backup-testnet-$(date +"%m-%d-%Y-%H-%M").sql']
+              args: ["-c", 'pg_dump -U postgres -h casperdata-db-service-testnet casperdata-testnet > /var/backups/backup-testnet-$(date +"%m-%d-%Y-%H-%M").sql']
               volumeMounts:
                 - mountPath: /var/backups
                   name: postgres-storage-testnet
