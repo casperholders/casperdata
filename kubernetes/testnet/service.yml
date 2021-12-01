@@ -1,39 +1,39 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: casperdata-service
+  name: casperdata-service-testnet
 spec:
   ports:
     - name: web
       port: 80
       targetPort: 3000
   selector:
-    app: casperdata
+    app: casperdata-testnet
 status:
   loadBalancer: { }
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: casperdata-db-service
+  name: casperdata-db-service-testnet
 spec:
   ports:
-    - name: casperdata-db-service
+    - name: casperdata-db-service-testnet
       protocol: TCP
       port: 5432
       targetPort: 5432
   selector:
-    app: casperdata-db
+    app: casperdata-db-testnet
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: casperbackup-service
+  name: casperbackup-service-testnet
 spec:
   ports:
-    - name: casperbackup-service
+    - name: casperbackup-service-testnet
       protocol: TCP
       port: 80
       targetPort: 80
   selector:
-    app: casperbackup
+    app: casperbackup-testnet

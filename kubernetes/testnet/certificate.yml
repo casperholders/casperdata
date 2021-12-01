@@ -1,9 +1,9 @@
 apiVersion: cert-manager.io/v1alpha2
 kind: Certificate
 metadata:
-  name: casperdata-cert
+  name: casperdata-cert-testnet
 spec:
-  secretName: casperdata-cert
+  secretName: casperdata-cert-testnet
   issuerRef:
     name: letsencrypt-prod
   commonName: data.testnet.casperholders.com
@@ -13,9 +13,9 @@ spec:
 apiVersion: cert-manager.io/v1alpha2
 kind: Certificate
 metadata:
-  name: casperbackup-cert
+  name: casperbackup-cert-testnet
 spec:
-  secretName: casperbackup-cert
+  secretName: casperbackup-cert-testnet
   issuerRef:
     name: letsencrypt-prod
   commonName: backup.testnet.casperholders.io

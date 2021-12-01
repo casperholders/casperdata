@@ -2,7 +2,7 @@
 apiVersion: traefik.containo.us/v1alpha1
 kind: IngressRoute
 metadata:
-  name: casperdata-tls
+  name: casperdata-tls-testnet
 spec:
   entryPoints:
     - secure
@@ -10,15 +10,15 @@ spec:
     - match: Host(`data.testnet.casperholders.com`)
       kind: Rule
       services:
-        - name: casperdata-service
+        - name: casperdata-service-testnet
           port: 80
   tls:
-    secretName: casperdata-cert
+    secretName: casperdata-cert-testnet
 ---
 apiVersion: traefik.containo.us/v1alpha1
 kind: IngressRoute
 metadata:
-  name: casperdata-http
+  name: casperdata-http-testnet
 spec:
   entryPoints:
     - web
@@ -28,13 +28,13 @@ spec:
         - name: https-only
       kind: Rule
       services:
-        - name: casperdata-service
+        - name: casperdata-service-testnet
           port: 80
 ---
 apiVersion: traefik.containo.us/v1alpha1
 kind: IngressRoute
 metadata:
-  name: casperbackup-tls
+  name: casperbackup-tls-testnet
 spec:
   entryPoints:
     - secure
@@ -42,7 +42,7 @@ spec:
     - match: Host(`backup.testnet.casperholders.io`)
       kind: Rule
       services:
-        - name: casperbackup-service
+        - name: casperbackup-service-testnet
           port: 80
   tls:
     secretName: casperbackup-cert
@@ -50,7 +50,7 @@ spec:
 apiVersion: traefik.containo.us/v1alpha1
 kind: IngressRoute
 metadata:
-  name: casperbackup-http
+  name: casperbackup-http-testnet
 spec:
   entryPoints:
     - web
@@ -60,5 +60,5 @@ spec:
         - name: https-only
       kind: Rule
       services:
-        - name: casperbackup-service
+        - name: casperbackup-service-testnet
           port: 80

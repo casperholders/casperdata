@@ -10,16 +10,16 @@ spec:
       template:
         spec:
           containers:
-            - name: postgres-backup
+            - name: postgres-backup-testnet
               image: postgres:latest
               command: ["/bin/sh"]
               args: ["-c", 'pg_dump -U postgres -h casperdata-db-service casperdata > /var/backups/backup-testnet-$(date +"%m-%d-%Y-%H-%M").sql']
               volumeMounts:
                 - mountPath: /var/backups
-                  name: postgres-storage
+                  name: postgres-storage-testnet
           restartPolicy: Never
           volumes:
-            - name: postgres-storage
+            - name: postgres-storage-testnet
               hostPath:
                 # Ensure the file directory is created.
                 path: /var/volumes/postgres-backups-testnet
