@@ -45,7 +45,7 @@ spec:
         - name: casperbackup-service-testnet
           port: 80
   tls:
-    secretName: casperbackup-cert
+    secretName: casperbackup-cert-testnet
 ---
 apiVersion: traefik.containo.us/v1alpha1
 kind: IngressRoute
