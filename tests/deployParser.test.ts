@@ -139,7 +139,7 @@ describe('Test deployParser class', () => {
     const blocks = new Blocks();
 
     blocks.upsertBlock({
-      hash: 'B2013d62225Ad3704dD5Bc0af5fC665fF16E804CcF7B03cF028C86c7185dC984',
+      hash: 'B2013d62225aD3704dd5Bc0Af5fc665FF16E804cCF7B03Cf028c86C7185dc984',
       header: {
         era_id: 2629,
         timestamp: '2021-11-14T15:18:12.224Z',
@@ -153,27 +153,27 @@ describe('Test deployParser class', () => {
     const casperClient = new CasperClient('http://176.9.125.5:7777/rpc');
     const config = new Config({});
     const deployParser = new DeployParser(casperClient, deploys, config);
-    await deployParser.storeTransfer('8721159C33213d125716947B26772B64AEB61BFc95298Ae0255E626e0698A881', 'B2013d62225Ad3704dD5Bc0af5fC665fF16E804CcF7B03cF028C86c7185dC984');
+    await deployParser.storeTransfer('8721159C33213D125716947b26772B64aeB61bFc95298ae0255e626e0698a881', 'B2013d62225aD3704dd5Bc0Af5fc665FF16E804cCF7B03Cf028c86C7185dc984');
     await deploys.bulkCreate();
 
     const databaseDeploys = await models.Deploy.findAll({
       where: {
-        hash: '8721159C33213d125716947B26772B64AEB61BFc95298Ae0255E626e0698A881',
+        hash: '8721159C33213D125716947b26772B64aeB61bFc95298ae0255e626e0698a881',
       },
     });
 
     expect(databaseDeploys.length).toEqual(1);
-    expect(databaseDeploys[0].hash).toEqual('8721159C33213d125716947B26772B64AEB61BFc95298Ae0255E626e0698A881');
-    expect(databaseDeploys[0].from).toEqual('0111bc2070A9Af0F26F94B8549BfFa5643eAd0bc68EBA3b1833039cFa2A9a8205d');
+    expect(databaseDeploys[0].hash).toEqual('8721159C33213D125716947b26772B64aeB61bFc95298ae0255e626e0698a881');
+    expect(databaseDeploys[0].from).toEqual('0111BC2070A9aF0F26F94B8549BfFA5643eAD0bc68EBa3b1833039Cfa2a9a8205d');
     expect(databaseDeploys[0].cost).toEqual('100000000');
     expect(databaseDeploys[0].result).toEqual(true);
     expect(databaseDeploys[0].timestamp).toEqual(new Date('2021-11-14T15:17:06.000Z'));
-    expect(databaseDeploys[0].block).toEqual('B2013d62225Ad3704dD5Bc0af5fC665fF16E804CcF7B03cF028C86c7185dC984');
+    expect(databaseDeploys[0].block).toEqual('B2013d62225aD3704dd5Bc0Af5fc665FF16E804cCF7B03Cf028c86C7185dc984');
     expect(databaseDeploys[0].type).toEqual(Deploys.TRANSFER);
     expect(databaseDeploys[0].data).toEqual({
-      hash: '8721159C33213d125716947B26772B64AEB61BFc95298Ae0255E626e0698A881',
+      hash: '8721159C33213D125716947b26772B64aeB61bFc95298ae0255e626e0698a881',
       amount: '10000000000',
-      from: '0111bc2070A9Af0F26F94B8549BfFa5643eAd0bc68EBA3b1833039cFa2A9a8205d',
+      from: '0111BC2070A9aF0F26F94B8549BfFA5643eAD0bc68EBa3b1833039Cfa2a9a8205d',
       target: 'ac916b2479626db496440785d12245c9979cdb01416255cef49a4788d911a6e5',
       id: '1234',
     });

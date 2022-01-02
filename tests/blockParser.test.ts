@@ -131,14 +131,14 @@ describe('Test blockParser class', () => {
     const blockParser = new BlockParser(casperClient, new CasperServiceByJsonRPC('http://176.9.125.5:7777/rpc'), deployParser, blocks, deploys, config);
     await blockParser.parseBlock(228359);
     expect(blocks.data.length).toEqual(1);
-    expect(blocks.data[0].hash).toEqual('72e9cD709b111DA9d1c3BfAF4e7a3Eb1bb612e8D4a02Fa8cF83fbB125D1924fB');
+    expect(blocks.data[0].hash).toEqual('72E9Cd709b111da9D1C3BfaF4E7a3EB1bB612e8D4a02fA8cf83FBb125d1924Fb');
     expect(blocks.data[0].era).toEqual(2224);
     expect(blocks.data[0].timestamp).toEqual('2021-10-11T21:23:15.584Z');
     expect(blocks.data[0].height).toEqual(228359);
     expect(blocks.data[0].era_end).toEqual(false);
     expect(blocks.data[0].validated).toEqual(false);
-    expect(deployParser.deploysToParse['72e9cD709b111DA9d1c3BfAF4e7a3Eb1bb612e8D4a02Fa8cF83fbB125D1924fB'].deploy_hashes.length).toEqual(100);
-    expect(deployParser.deploysToParse['72e9cD709b111DA9d1c3BfAF4e7a3Eb1bb612e8D4a02Fa8cF83fbB125D1924fB'].transfer_hashes.length).toEqual(632);
+    expect(deployParser.deploysToParse['72E9Cd709b111da9D1C3BfaF4E7a3EB1bB612e8D4a02fA8cf83FBb125d1924Fb'].deploy_hashes.length).toEqual(100);
+    expect(deployParser.deploysToParse['72E9Cd709b111da9D1C3BfaF4E7a3EB1bB612e8D4a02fA8cf83FBb125d1924Fb'].transfer_hashes.length).toEqual(632);
   });
 
   it('Should parse a switch block', async () => {
@@ -156,12 +156,12 @@ describe('Test blockParser class', () => {
     const blockParser = new BlockParser(casperClient, new CasperServiceByJsonRPC('http://176.9.125.5:7777/rpc'), deployParser, blocks, deploys, config);
     await blockParser.parseBlock(293733);
     expect(blocks.data.length).toEqual(1);
-    expect(blocks.data[0].hash).toEqual('23881Bc3d83aD39E5A9a93EfBEF1C5A2E810b2Ed6E715660Af23121aF8Ef61D0');
+    expect(blocks.data[0].hash).toEqual('23881bc3d83ad39E5a9A93EfbEf1C5a2E810B2eD6E715660AF23121Af8ef61d0');
     expect(blocks.data[0].era).toEqual(2616);
     expect(blocks.data[0].timestamp).toEqual('2021-11-13T14:55:39.520Z');
     expect(blocks.data[0].height).toEqual(293733);
     expect(blocks.data[0].era_end).toEqual(true);
     expect(blocks.data[0].validated).toEqual(true);
-    expect('23881bc3d83ad39e5a9a93efbef1c5a2e810b2ed6e715660af23121af8ef61d0' in deployParser.deploysToParse).toEqual(false);
+    expect('23881bc3d83ad39E5a9A93EfbEf1C5a2E810B2eD6E715660AF23121Af8ef61d0' in deployParser.deploysToParse).toEqual(false);
   });
 });
