@@ -4,7 +4,7 @@ metadata:
   name: casperdata-config
 data:
   DATABASE_URL: "postgres://postgres@casperdata-db-service:5432/casperdata"
-  LIMIT_BULK_INSERT: "5000"
+  LIMIT_BULK_INSERT: "1000"
   BASE_RANDOM_THROTTLE_NUMBER: "10"
   RPC_URL: "http://78.46.37.169:8500/rpc"
   LOOP: "60"
