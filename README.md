@@ -62,6 +62,8 @@ When you launch the software it will run all migrations automatically.
 
 If you want to speed up the process you can find daily backups here : [mainnet](https://backup.casperholders.io/) / [testnet](https://backup.testnet.casperholders.io/)
 
+Import the backup into your database with `psql dbname < dumpfile` (cf https://www.postgresql.org/docs/current/backup-dump.html)
+
 **The same behavior is used within the generated binary.**
 
 ## Api endpoints
