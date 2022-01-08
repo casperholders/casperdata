@@ -2,8 +2,6 @@ name: tests
 
 on:
   push:
-    branches-ignore:
-      - 'main'
 
 jobs:
   build:
@@ -19,6 +17,8 @@ jobs:
 
       - name: install deps
         run: yarn install --non-interactive
+      - name: run lint
+        run: yarn lint
       - name: run tests
         run: yarn test
       - uses: codecov/codecov-action@v2

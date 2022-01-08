@@ -6,7 +6,7 @@ data:
   DATABASE_URL: "postgres://postgres@casperdata-db-service:5432/casperdata"
   LIMIT_BULK_INSERT: "500"
   BASE_RANDOM_THROTTLE_NUMBER: "10"
-  RPC_URL: "http://78.46.37.169:8500/rpc"
+  RPC_URL: "https://rpc.casperholders.com/rpc"
   LOOP: "60"
   NODE_ENV: "production"
 ---

@@ -112,7 +112,7 @@ describe('Test deployParser class', () => {
 
   it('Should sum', async () => {
     const deploys = new Deploys();
-    const casperClient = new CasperClient('http://176.9.125.5:7777/rpc');
+    const casperClient = new CasperClient('https://rpc.testnet.casperholders.com/rpc');
     const config = new Config({});
     const deployParser = new DeployParser(casperClient, deploys, config);
     const res = deployParser.sum(1, 1);
@@ -122,10 +122,10 @@ describe('Test deployParser class', () => {
   it('Should parse all deploys', async () => {
     const blocks = new Blocks();
     const deploys = new Deploys();
-    const casperClient = new CasperClient('http://176.9.125.5:7777/rpc');
+    const casperClient = new CasperClient('https://rpc.testnet.casperholders.com/rpc');
     const config = new Config({});
     const deployParser = new DeployParser(casperClient, deploys, config);
-    const blockParser = new BlockParser(casperClient, new CasperServiceByJsonRPC('http://176.9.125.5:7777/rpc'), deployParser, blocks, deploys, config);
+    const blockParser = new BlockParser(casperClient, new CasperServiceByJsonRPC('https://rpc.testnet.casperholders.com/rpc'), deployParser, blocks, deploys, config);
     await blockParser.parseBlock(228359);
     await blocks.bulkCreate();
     await deployParser.parseAllDeploys();
@@ -139,7 +139,7 @@ describe('Test deployParser class', () => {
     const blocks = new Blocks();
 
     blocks.upsertBlock({
-      hash: 'B2013d62225aD3704dd5Bc0Af5fc665FF16E804cCF7B03Cf028c86C7185dc984',
+      hash: 'b2013d62225ad3704dd5bc0af5fc665ff16e804ccf7b03cf028c86c7185dc984',
       header: {
         era_id: 2629,
         timestamp: '2021-11-14T15:18:12.224Z',
@@ -150,30 +150,30 @@ describe('Test deployParser class', () => {
     await blocks.bulkCreate();
 
     const deploys = new Deploys();
-    const casperClient = new CasperClient('http://176.9.125.5:7777/rpc');
+    const casperClient = new CasperClient('https://rpc.testnet.casperholders.com/rpc');
     const config = new Config({});
     const deployParser = new DeployParser(casperClient, deploys, config);
-    await deployParser.storeTransfer('8721159C33213D125716947b26772B64aeB61bFc95298ae0255e626e0698a881', 'B2013d62225aD3704dd5Bc0Af5fc665FF16E804cCF7B03Cf028c86C7185dc984');
+    await deployParser.storeTransfer('8721159c33213d125716947b26772b64aeb61bfc95298ae0255e626e0698a881', 'b2013d62225ad3704dd5bc0af5fc665ff16e804ccf7b03cf028c86c7185dc984');
     await deploys.bulkCreate();
 
     const databaseDeploys = await models.Deploy.findAll({
       where: {
-        hash: '8721159C33213D125716947b26772B64aeB61bFc95298ae0255e626e0698a881',
+        hash: '8721159c33213d125716947b26772b64aeb61bfc95298ae0255e626e0698a881',
       },
     });
 
     expect(databaseDeploys.length).toEqual(1);
-    expect(databaseDeploys[0].hash).toEqual('8721159C33213D125716947b26772B64aeB61bFc95298ae0255e626e0698a881');
-    expect(databaseDeploys[0].from).toEqual('0111BC2070A9aF0F26F94B8549BfFA5643eAD0bc68EBa3b1833039Cfa2a9a8205d');
+    expect(databaseDeploys[0].hash).toEqual('8721159c33213d125716947b26772b64aeb61bfc95298ae0255e626e0698a881');
+    expect(databaseDeploys[0].from).toEqual('0111bc2070a9af0f26f94b8549bffa5643ead0bc68eba3b1833039cfa2a9a8205d');
     expect(databaseDeploys[0].cost).toEqual('100000000');
     expect(databaseDeploys[0].result).toEqual(true);
     expect(databaseDeploys[0].timestamp).toEqual(new Date('2021-11-14T15:17:06.000Z'));
-    expect(databaseDeploys[0].block).toEqual('B2013d62225aD3704dd5Bc0Af5fc665FF16E804cCF7B03Cf028c86C7185dc984');
+    expect(databaseDeploys[0].block).toEqual('b2013d62225ad3704dd5bc0af5fc665ff16e804ccf7b03cf028c86c7185dc984');
     expect(databaseDeploys[0].type).toEqual(Deploys.TRANSFER);
     expect(databaseDeploys[0].data).toEqual({
-      hash: '8721159C33213D125716947b26772B64aeB61bFc95298ae0255e626e0698a881',
+      hash: '8721159c33213d125716947b26772b64aeb61bfc95298ae0255e626e0698a881',
       amount: '10000000000',
-      from: '0111BC2070A9aF0F26F94B8549BfFA5643eAD0bc68EBa3b1833039Cfa2a9a8205d',
+      from: '0111bc2070a9af0f26f94b8549bffa5643ead0bc68eba3b1833039cfa2a9a8205d',
       target: 'ac916b2479626db496440785d12245c9979cdb01416255cef49a4788d911a6e5',
       id: '1234',
     });
@@ -230,7 +230,7 @@ describe('Test deployParser class', () => {
         return undefined;
       });
       const deploys = new Deploys();
-      const casperClient = new CasperClient('http://176.9.125.5:7777/rpc');
+      const casperClient = new CasperClient('https://rpc.testnet.casperholders.com/rpc');
       const config = new Config({});
       const deployParser = new DeployParser(casperClient, deploys, config);
       await deployParser.parseDeploy(deployHash, blockHash);
