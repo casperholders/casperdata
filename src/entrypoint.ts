@@ -10,6 +10,7 @@ const { Umzug, SequelizeStorage } = require('umzug');
 const blockMigration = require('../migrations/20210831193231-create-block');
 const deployMigration = require('../migrations/20210831203931-create-deploy');
 const fullStatsMigration = require('../migrations/20211126003309-full_stats');
+const fromIndex = require('../migrations/20220111203853-from_index');
 require('dotenv').config();
 
 /**
@@ -38,6 +39,7 @@ const umzug = new Umzug({
     blockMigration,
     deployMigration,
     fullStatsMigration,
+    fromIndex,
   ],
   context: sequelize.getQueryInterface(),
   storage: new SequelizeStorage({ sequelize }),
