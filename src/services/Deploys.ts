@@ -4,6 +4,17 @@ import Helper from '../helper';
 
 const models = require('../../models');
 
+type DeployType = {
+  hash: string
+  from: string
+  cost: number | undefined
+  result: boolean
+  timestamp: Date
+  block: string
+  type: string
+  data: object
+};
+
 /**
  * Deploys class
  * Contains static types of deploys
@@ -44,16 +55,8 @@ export default class Deploys {
   /**
    * Contains all the data of parsed deploys
    */
-  data: {
-    hash: string;
-    from: string;
-    cost: number | undefined;
-    result: boolean;
-    timestamp: Date;
-    block: string;
-    type: string;
-    data: object;
-  }[] = [];
+
+  data: Map<string, DeployType> = new Map<string, DeployType>();
 
   /**
    * Parse a deploy and insert it in the data object.
@@ -70,8 +73,9 @@ export default class Deploys {
   ) {
     try {
       const cost = Helper.getCost(deploy);
-      this.data.push({
-        hash: deploy[1].deploy.hash,
+      const { hash } = deploy[1].deploy;
+      this.data.set(hash, {
+        hash,
         from: deploy[1].deploy.header.account,
         cost,
         result: Helper.getResult(deploy),
@@ -90,10 +94,10 @@ export default class Deploys {
    * Bulk insert or update with the given data contained in the data object.
    */
   async bulkCreate() {
-    await models.Deploy.bulkCreate(this.data, {
+    await models.Deploy.bulkCreate(Array.from(this.data.values()), {
       fields: ['hash', 'from', 'cost', 'result', 'timestamp', 'block', 'type', 'data'],
       updateOnDuplicate: ['from', 'cost', 'result', 'timestamp', 'block', 'type', 'data'],
     });
-    this.data.length = 0;
+    this.data.clear();
   }
 }

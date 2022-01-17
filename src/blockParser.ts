@@ -2,9 +2,10 @@ import ora from 'ora';
 import Config from './Config';
 import DeployParser from './deployParser';
 import Helper from './helper';
-import { CasperClient, CasperServiceByJsonRPC } from 'casper-js-sdk';
+import { CasperServiceByJsonRPC } from 'casper-js-sdk';
 import Blocks from './services/Blocks';
 import Deploys from './services/Deploys';
+import makeEta from 'simple-eta';
 
 const models = require('../models');
 const { QueryTypes } = require('sequelize');
@@ -15,9 +16,7 @@ const { QueryTypes } = require('sequelize');
 export default class BlockParser {
   deployParser: DeployParser;
 
-  casperClient: CasperClient;
-
-  casperServiceByJsonRPC: CasperServiceByJsonRPC;
+  rpc: string;
 
   blocks: Blocks;
 
@@ -27,23 +26,20 @@ export default class BlockParser {
 
   /**
    * Constructor
-   * @param casperClient
-   * @param casperRpc
+   * @param rpc
    * @param deployParser
    * @param blocks
    * @param deploys
    * @param config
    */
   constructor(
-    casperClient: CasperClient,
-    casperRpc: CasperServiceByJsonRPC,
+    rpc: string,
     deployParser: DeployParser,
     blocks: Blocks,
     deploys: Deploys,
     config: Config,
   ) {
-    this.casperClient = casperClient;
-    this.casperServiceByJsonRPC = casperRpc;
+    this.rpc = rpc;
     this.deployParser = deployParser;
     this.blocks = blocks;
     this.deploys = deploys;
@@ -56,7 +52,10 @@ export default class BlockParser {
    */
   async fetchBlock(height: number) {
     try {
-      return (await this.casperServiceByJsonRPC.getBlockInfoByHeight(height)).block;
+      return (await Helper.promiseWithTimeout(
+        new CasperServiceByJsonRPC(this.rpc).getBlockInfoByHeight(height),
+        10000,
+      )).block;
     } catch (e) {
       const blockToFetch = await models.Block.findOne({
         where: {
@@ -65,7 +64,10 @@ export default class BlockParser {
       });
       if (blockToFetch) {
         try {
-          return (await this.casperServiceByJsonRPC.getBlockInfo(blockToFetch.hash)).block;
+          return (await Helper.promiseWithTimeout(
+            new CasperServiceByJsonRPC(this.rpc).getBlockInfo(blockToFetch.hash),
+            10000,
+          )).block;
         } catch (error) {
           console.log(`Cannot fetch block ${blockToFetch.hash}`);
           throw error;
@@ -83,36 +85,43 @@ export default class BlockParser {
    */
   async parseBlock(height: number, preFetchedBlock?: any) {
     try {
-      const block = preFetchedBlock || await this.fetchBlock(height);
-      let eraEnd = false;
-      if (block.header.era_end) {
-        eraEnd = true;
-      }
-
-      const allDeploys = [...block.body.deploy_hashes, ...block.body.transfer_hashes];
-      if (allDeploys.length > 0) {
-        const count = await models.Deploy.count({
-          where: {
-            hash: allDeploys,
-          },
-        });
-        if (count === allDeploys.length) {
-          this.blocks.upsertBlock(block, eraEnd, true);
-        } else {
-          this.blocks.upsertBlock(block, eraEnd, false);
-          this.deployParser.pushDeploysToParse(block.hash, {
-            deploy_hashes: block.body.deploy_hashes,
-            transfer_hashes: block.body.transfer_hashes,
-          });
-        }
-      } else {
-        this.blocks.upsertBlock(block, eraEnd, true);
-      }
+      await this.parseAndFetchBlock(height, preFetchedBlock);
     } catch (e) {
-      console.log(e);
-      console.log(`Retry block ${height} not found.`);
-      await Helper.sleep(5000);
+      if (e instanceof Error && e.message === 'Promise timed out') {
+        console.log(`\nRetry block ${height} not found. Timeout.`);
+      } else {
+        console.log(`\nRetry block ${height} not found.`);
+      }
+      await Helper.sleep(Math.floor(Math.random() * 5000));
       await this.parseBlock(height, preFetchedBlock);
+    }
+  }
+
+  async parseAndFetchBlock(height: number, preFetchedBlock?: any) {
+    const block = preFetchedBlock || await this.fetchBlock(height);
+    let eraEnd = false;
+    if (block.header.era_end) {
+      eraEnd = true;
+    }
+
+    const allDeploys = [...block.body.deploy_hashes, ...block.body.transfer_hashes];
+    if (allDeploys.length > 0) {
+      const count = await models.Deploy.count({
+        where: {
+          hash: allDeploys,
+        },
+      });
+      if (count === allDeploys.length) {
+        this.blocks.upsertBlock(block, eraEnd, true);
+      } else {
+        this.blocks.upsertBlock(block, eraEnd, false);
+        this.deployParser.pushDeploysToParse(block.hash, {
+          deploy_hashes: block.body.deploy_hashes,
+          transfer_hashes: block.body.transfer_hashes,
+        });
+      }
+    } else {
+      this.blocks.upsertBlock(block, eraEnd, true);
     }
   }
 
@@ -123,26 +132,46 @@ export default class BlockParser {
    */
   async parseInterval(start: number, end: number) {
     let i = start;
-    const blockSpinner = ora({
+    let blockSpinner = ora({
       stream: process.stdout,
       isEnabled: true,
       text: `Block parsed ${i} out of ${end}`,
     }).start();
     const promises = [];
+    let promisesResolved = i;
+    const eta = makeEta();
     /* eslint-disable no-await-in-loop */
     for (i; i <= end; i++) {
       if (i % this.config.limitBulkInsert === 0) {
-        blockSpinner.text = `Block parsed ${i} out of ${end}. Waiting for all of them to be parsed and bulk insert them into the DB.`;
-        await Promise.all(promises);
+        // eslint-disable-next-line @typescript-eslint/no-loop-func
+        const interval = setInterval(() => {
+          blockSpinner.text = `Block parsed ${promisesResolved} out of ${end}. Aprox. ${eta.estimate().toFixed(0)} seconds left`;
+        }, 100);
+        await Promise.allSettled(promises);
+        clearInterval(interval);
+        blockSpinner = blockSpinner.stopAndPersist({
+          symbol: '🕐',
+          text: `Block parsed ${promisesResolved} out of ${end}. Waiting for all of them to be parsed and bulk insert them into the DB.`,
+        });
         await this.blocks.bulkCreate();
+        await this.deployParser.parseAllDeploys();
+        blockSpinner.start(`Block parsed ${promisesResolved} out of ${end}. Aprox. ${eta.estimate().toFixed(0)} seconds left`);
       }
-      await Helper.sleep(Math.floor(Math.random() * this.config.baseRandomThrottleNumber) + 1);
-      promises.push(this.parseBlock(i));
-      blockSpinner.text = `Block parsed ${i} out of ${end}`;
+      await Helper.sleep(Math.floor(Math.random() * this.config.baseRandomThrottleNumber) + 5);
+      promises.push(
+        this.parseBlock(i)
+          // eslint-disable-next-line @typescript-eslint/no-loop-func
+          .finally(() => promisesResolved++ && eta.report(promisesResolved / end)),
+      );
+      blockSpinner.text = `Block parsed ${promisesResolved} out of ${end}. Aprox. ${eta.estimate().toFixed(0)} seconds left`;
     }
+    const interval = setInterval(() => {
+      blockSpinner.text = `Block parsed ${promisesResolved} out of ${end}. Aprox. ${eta.estimate().toFixed(0)} seconds left`;
+    }, 100);
     /* eslint-enable no-await-in-loop */
-    blockSpinner.text = 'Waiting to parse all blocks... This might take a while.';
-    await Promise.all(promises);
+    await Promise.allSettled(promises);
+    clearInterval(interval);
+    blockSpinner.text = `Block parsed ${promisesResolved} out of ${end}. Waiting for all of them to be parsed and bulk insert them into the DB.`;
     await this.blocks.bulkCreate();
     blockSpinner.succeed('All blocks parsed.');
 
@@ -155,27 +184,47 @@ export default class BlockParser {
    */
   async parseArray(missingBlocks: number[]) {
     let blockCount = 0;
-    const blockSpinner = ora({
+    let promisesResolved = blockCount;
+    let blockSpinner = ora({
       stream: process.stdout,
       isEnabled: true,
-      text: `Block parsed ${blockCount} out of ${missingBlocks.length}`,
+      text: `Block parsed ${promisesResolved} out of ${missingBlocks.length}`,
     }).start();
     const promises = [];
+    const eta = makeEta();
     /* eslint-disable no-await-in-loop, no-restricted-syntax */
     for (const missingBlock of missingBlocks) {
       if (blockCount % this.config.limitBulkInsert === 0) {
-        blockSpinner.text = `Block parsed ${blockCount} out of ${missingBlocks.length}. Waiting for all of them to be parsed and bulk insert them into the DB.`;
-        await Promise.all(promises);
+        // eslint-disable-next-line @typescript-eslint/no-loop-func
+        const interval = setInterval(() => {
+          blockSpinner.text = `Block parsed ${promisesResolved} out of ${missingBlocks.length}. Aprox. ${eta.estimate().toFixed(0)} seconds left`;
+        }, 100);
+        await Promise.allSettled(promises);
+        clearInterval(interval);
+        blockSpinner = blockSpinner.stopAndPersist({
+          symbol: '🕐',
+          text: `Block parsed ${promisesResolved} out of ${missingBlocks.length}. Waiting for all of them to be parsed and bulk insert them into the DB.`,
+        });
         await this.blocks.bulkCreate();
+        await this.deployParser.parseAllDeploys();
+        blockSpinner.start(`Block parsed ${promisesResolved} out of ${missingBlocks.length}. Aprox. ${eta.estimate().toFixed(0)} seconds left`);
       }
-      await Helper.sleep(Math.floor(Math.random() * this.config.baseRandomThrottleNumber) + 1);
-      promises.push(this.parseBlock(missingBlock));
+      await Helper.sleep(Math.floor(Math.random() * this.config.baseRandomThrottleNumber) + 5);
+      promises.push(
+        this.parseBlock(missingBlock)
+          // eslint-disable-next-line @typescript-eslint/no-loop-func
+          .finally(() => promisesResolved++ && eta.report(promisesResolved / missingBlocks.length)),
+      );
       blockCount++;
-      blockSpinner.text = `Block parsed ${blockCount} out of ${missingBlocks.length}`;
+      blockSpinner.text = `Block parsed ${promisesResolved} out of ${missingBlocks.length}. Aprox. ${eta.estimate().toFixed(0)} seconds left`;
     }
+    const interval = setInterval(() => {
+      blockSpinner.text = `Block parsed ${promisesResolved} out of ${missingBlocks.length}. Aprox. ${eta.estimate().toFixed(0)} seconds left`;
+    }, 100);
     /* eslint-enable no-await-in-loop, no-restricted-syntax */
-    blockSpinner.text = 'Waiting to parse all blocks... This might take a while.';
-    await Promise.all(promises);
+    await Promise.allSettled(promises);
+    clearInterval(interval);
+    blockSpinner.text = `Block parsed ${promisesResolved} out of ${missingBlocks.length}. Waiting for all of them to be parsed and bulk insert them into the DB.`;
     await this.blocks.bulkCreate();
     blockSpinner.succeed('All blocks parsed.');
     await this.deployParser.parseAllDeploys();
@@ -200,33 +249,58 @@ export default class BlockParser {
 
     if (unvalidatedBlocks.length > 0) {
       let blockCount = 0;
-      const blockSpinner = ora({
+      let promisesResolved = 0;
+      let blockSpinner = ora({
         stream: process.stdout,
         isEnabled: true,
-        text: `Block validated ${blockCount} out of ${unvalidatedBlocks.length}`,
+        text: `Block validated ${promisesResolved} out of ${unvalidatedBlocks.length}`,
       }).start();
       const promises = [];
+      const eta = makeEta();
       /* eslint-disable no-await-in-loop, no-restricted-syntax */
       for (const unvalidatedBlock of unvalidatedBlocks) {
         if (blockCount % this.config.limitBulkInsert === 0) {
-          blockSpinner.text = `Block validated ${blockCount} out of ${unvalidatedBlocks.length}. Waiting for all of them to be parsed and bulk insert them into the DB.`;
-          await Promise.all(promises);
+          // eslint-disable-next-line @typescript-eslint/no-loop-func
+          const interval = setInterval(() => {
+            blockSpinner.text = `Block validated ${promisesResolved} out of ${unvalidatedBlocks.length}. Aprox. ${eta.estimate().toFixed(0)} seconds left`;
+          }, 100);
+          await Promise.allSettled(promises);
+          clearInterval(interval);
+          blockSpinner = blockSpinner.stopAndPersist({
+            symbol: '🕐',
+            text: `Block validated ${promisesResolved} out of ${unvalidatedBlocks.length}. Waiting to parse missing deploys.`,
+          });
           await this.deployParser.parseAllDeploys();
-          await this.blocks.bulkCreate();
+          blockSpinner.start(`Block validated ${promisesResolved} out of ${unvalidatedBlocks.length}. Waiting to bulk insert blocks & deploys.`);
           await this.deploys.bulkCreate();
+          await this.blocks.bulkCreate();
         }
-        promises.push(this.validateBlock(unvalidatedBlock));
+        await Helper.sleep(Math.floor(Math.random() * this.config.baseRandomThrottleNumber) + 5);
+        promises.push(
+          this.validateBlock(unvalidatedBlock)
+            .finally(
+              // eslint-disable-next-line @typescript-eslint/no-loop-func
+              () => promisesResolved++ && eta.report(promisesResolved / unvalidatedBlocks.length),
+            ),
+        );
         blockCount++;
-        blockSpinner.text = `Block validated ${blockCount} out of ${unvalidatedBlocks.length}`;
-        await Helper.sleep(Math.floor(Math.random() * this.config.baseRandomThrottleNumber) + 1);
+        blockSpinner.text = `Block validated ${promisesResolved} out of ${unvalidatedBlocks.length}. Aprox. ${eta.estimate().toFixed(0)} seconds left`;
       }
+      const interval = setInterval(() => {
+        blockSpinner.text = `Block validated ${promisesResolved} out of ${unvalidatedBlocks.length}. Aprox. ${eta.estimate().toFixed(0)} seconds left`;
+      }, 100);
       /* eslint-enable no-await-in-loop, no-restricted-syntax */
-      blockSpinner.text = 'Waiting to validate all blocks... This might take a while.';
-      await Promise.all(promises);
+      await Promise.allSettled(promises);
+      clearInterval(interval);
+      blockSpinner = blockSpinner.stopAndPersist({
+        symbol: '🕐',
+        text: `Block validated ${promisesResolved} out of ${unvalidatedBlocks.length}. Waiting to parse missing deploys.`,
+      });
       await this.deployParser.parseAllDeploys();
-      blockSpinner.succeed('All blocks validated.');
-      await this.blocks.bulkCreate();
+      blockSpinner.start(`Block validated ${promisesResolved} out of ${unvalidatedBlocks.length}. Waiting to bulk insert missing deploys & validated blocks.`);
       await this.deploys.bulkCreate();
+      await this.blocks.bulkCreate();
+      blockSpinner.succeed('All blocks validated.');
     }
   }
 
@@ -270,7 +344,7 @@ export default class BlockParser {
       ));
     }
 
-    const latestBlock = await this.casperServiceByJsonRPC.getLatestBlockInfo();
+    const latestBlock = await new CasperServiceByJsonRPC(this.rpc).getLatestBlockInfo();
     if (latestBlock.block == null) {
       console.log('Unable to retrieve last block from the blockchain');
       return;

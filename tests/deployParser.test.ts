@@ -1,7 +1,11 @@
 import DeployParser from '../src/deployParser';
 import Deploys from '../src/services/Deploys';
 import {
-  CasperClient, CasperServiceByJsonRPC, CLByteArray, CLPublicKey, CLString, CLU8,
+  CasperClient,
+  CLByteArray,
+  CLPublicKey,
+  CLString,
+  CLU8,
   CLValue,
   DeployUtil,
   GetDeployResult,
@@ -13,6 +17,8 @@ import BlockParser from '../src/blockParser';
 import Config from '../src/Config';
 
 const models = require('../models');
+
+const rpc = 'http://rpc.testnet.casperholders.com/rpc';
 
 jest.setTimeout(50000);
 
@@ -112,9 +118,8 @@ describe('Test deployParser class', () => {
 
   it('Should sum', async () => {
     const deploys = new Deploys();
-    const casperClient = new CasperClient('https://rpc.testnet.casperholders.com/rpc');
     const config = new Config({});
-    const deployParser = new DeployParser(casperClient, deploys, config);
+    const deployParser = new DeployParser(rpc, deploys, config);
     const res = deployParser.sum(1, 1);
     expect(res).toEqual(2);
   });
@@ -122,10 +127,9 @@ describe('Test deployParser class', () => {
   it('Should parse all deploys', async () => {
     const blocks = new Blocks();
     const deploys = new Deploys();
-    const casperClient = new CasperClient('https://rpc.testnet.casperholders.com/rpc');
     const config = new Config({});
-    const deployParser = new DeployParser(casperClient, deploys, config);
-    const blockParser = new BlockParser(casperClient, new CasperServiceByJsonRPC('https://rpc.testnet.casperholders.com/rpc'), deployParser, blocks, deploys, config);
+    const deployParser = new DeployParser(rpc, deploys, config);
+    const blockParser = new BlockParser(rpc, deployParser, blocks, deploys, config);
     await blockParser.parseBlock(228359);
     await blocks.bulkCreate();
     await deployParser.parseAllDeploys();
@@ -150,9 +154,8 @@ describe('Test deployParser class', () => {
     await blocks.bulkCreate();
 
     const deploys = new Deploys();
-    const casperClient = new CasperClient('https://rpc.testnet.casperholders.com/rpc');
     const config = new Config({});
-    const deployParser = new DeployParser(casperClient, deploys, config);
+    const deployParser = new DeployParser(rpc, deploys, config);
     await deployParser.storeTransfer('8721159c33213d125716947b26772b64aeb61bfc95298ae0255e626e0698a881', 'b2013d62225ad3704dd5bc0af5fc665ff16e804ccf7b03cf028c86c7185dc984');
     await deploys.bulkCreate();
 
@@ -230,14 +233,14 @@ describe('Test deployParser class', () => {
         return undefined;
       });
       const deploys = new Deploys();
-      const casperClient = new CasperClient('https://rpc.testnet.casperholders.com/rpc');
       const config = new Config({});
-      const deployParser = new DeployParser(casperClient, deploys, config);
+      const deployParser = new DeployParser(rpc, deploys, config);
       await deployParser.parseDeploy(deployHash, blockHash);
-      expect(deployParser.deploys.data.length).toEqual(1);
-      expect(deployParser.deploys.data[0].type).toEqual(expectedType);
-      deployParser.deploys.data = [];
-      expect(deployParser.deploys.data.length).toEqual(0);
+      expect(deployParser.deploys.data.size).toEqual(1);
+      expect(deployParser.deploys.data.get(deployParser.deploys.data.keys().next().value)?.type)
+        .toEqual(expectedType);
+      deployParser.deploys.data.clear();
+      expect(deployParser.deploys.data.size).toEqual(0);
     },
   );
 });

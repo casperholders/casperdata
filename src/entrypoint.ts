@@ -1,5 +1,4 @@
 import Deploys from './services/Deploys';
-import { CasperClient, CasperServiceByJsonRPC } from 'casper-js-sdk';
 import DeployParser from './deployParser';
 import Blocks from './services/Blocks';
 import BlockParser from './blockParser';
@@ -44,7 +43,7 @@ const umzug = new Umzug({
   context: sequelize.getQueryInterface(),
   storage: new SequelizeStorage({ sequelize }),
   logger: console,
-});
+} as any);
 
 /**
  * Used to loop parse all blocks for a given interval
@@ -69,24 +68,22 @@ function parseLoop(blockParser: BlockParser, interval: number) {
   const deploys = new Deploys();
 
   if (argv.rpc !== undefined || process.env.RPC_URL !== undefined) {
-    const rpc = argv.rpc || process.env.RPC_URL as string;
-    const interval = argv.loop || parseInt(process.env.LOOP as string, 10);
+    const rpc = argv.rpc as string || process.env.RPC_URL as string;
+    const interval = argv.loop as number || parseInt(process.env.LOOP as string, 10);
 
     if (!rpc.match(/^https?:\/\/.*/)) {
       console.log('RPC url incorrect. Format : http(s)://[url] this should point directly to the rpc endpoint of your casper node.');
       return;
     }
 
-    const casperClient = new CasperClient(rpc);
     const config = new Config({
-      limitBulkInsert: argv.limitBulkInsert,
-      baseRandomThrottleNumber: argv.baseRandomThrottleNumber,
+      limitBulkInsert: argv.limitBulkInsert as number,
+      baseRandomThrottleNumber: argv.baseRandomThrottleNumber as number,
     });
 
     const blockParser = new BlockParser(
-      casperClient,
-      new CasperServiceByJsonRPC(rpc),
-      new DeployParser(casperClient, deploys, config),
+      rpc,
+      new DeployParser(rpc, deploys, config),
       new Blocks(),
       deploys,
       config,

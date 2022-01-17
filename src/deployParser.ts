@@ -16,8 +16,7 @@ import AccountInfo from './services/AccountInfo/AccountInfo';
 import Faucet from './services/Faucet/Faucet';
 import Deploys from './services/Deploys';
 import ERC20 from './services/ERC20/ERC20';
-
-const models = require('../models');
+import makeEta from 'simple-eta';
 
 /**
  * Storage for deploys within a block
@@ -41,7 +40,7 @@ interface BlocksDeploys {
 export default class DeployParser {
   deploysToParse: BlocksDeploys = {};
 
-  casperClient: CasperClient;
+  rpc: string;
 
   deploys: Deploys;
 
@@ -49,12 +48,12 @@ export default class DeployParser {
 
   /**
    * Constructor
-   * @param casperClient
+   * @param rpc
    * @param deploys
    * @param config
    */
-  constructor(casperClient: CasperClient, deploys: Deploys, config: Config) {
-    this.casperClient = casperClient;
+  constructor(rpc: string, deploys: Deploys, config: Config) {
+    this.rpc = rpc;
     this.deploys = deploys;
     this.config = config;
   }
@@ -82,17 +81,28 @@ export default class DeployParser {
    * @param deployHash
    * @param blockHash
    */
-  async parseDeploy(deployHash: string, blockHash: string) {
+  async parseDeploy(deployHash: string, blockHash: string, retry: number = 0) {
     try {
-      const deploy = await this.casperClient.getDeploy(deployHash);
+      const deploy = await Helper.promiseWithTimeout(
+        new CasperClient(this.rpc).getDeploy(deployHash),
+        5000,
+      );
       if (deploy[0].session.isModuleBytes()) {
         this.parseModuleDeploy(deploy, blockHash);
       } else {
         this.parseStandardDeploy(deploy, blockHash);
       }
     } catch (e) {
-      console.log(`Failed to fetch deploy : ${deployHash}`);
-      console.log(e);
+      if ((e instanceof Error && e.message === 'Promise timed out')) {
+        console.log(`\nFailed to fetch deploy : ${deployHash}. Timeout. Retry ${retry} out of 5`);
+        if (retry < 5) {
+          await Helper.sleep(Math.floor(Math.random() * 5000));
+          await this.parseDeploy(deployHash, blockHash, retry + 1);
+        }
+      } else {
+        console.log(`\nFailed to fetch deploy : ${deployHash} ${typeof e}`);
+        console.log(e);
+      }
     }
   }
 
@@ -230,36 +240,24 @@ export default class DeployParser {
         }
         break;
       default:
-        console.log(`Unknown deploy : ${deploy[1].deploy.hash}`);
+        console.log(`\nUnknown deploy : ${deploy[1].deploy.hash}`);
     }
 
     this.deploys.parseDeployData(deploy, blockHash, type, data);
   }
 
   /**
-   * Parse deploys of a block that doesn't exist in the database
-   * @param hash
-   * @param deploys
-   */
-  async parseDeploysOfBlock(hash: string, deploys: []) {
-    await Promise.all(
-      deploys.map(async (deployHash) => {
-        const exist = await models.Deploy.findOne({ where: { hash: deployHash } });
-        if (exist === null) {
-          await this.parseDeploy(deployHash, hash);
-        }
-      }),
-    );
-  }
-
-  /**
    * Parse transfer
    * @param transferHash
    * @param blockHash
+   * @param retry
    */
-  async storeTransfer(transferHash: string, blockHash: string) {
+  async storeTransfer(transferHash: string, blockHash: string, retry: number = 0) {
     try {
-      const transfer = await this.casperClient.getDeploy(transferHash);
+      const transfer = await Helper.promiseWithTimeout(
+        new CasperClient(this.rpc).getDeploy(transferHash),
+        5000,
+      );
 
       const id = Helper.getId(transfer);
 
@@ -273,90 +271,117 @@ export default class DeployParser {
 
       this.deploys.parseDeployData(transfer, blockHash, Deploys.TRANSFER, data);
     } catch (e) {
-      console.log(`Failed to retrieve transfer ${transferHash}`);
-      console.log(e);
-    }
-  }
-
-  /**
-   * Parse transfers of a block
-   * @param hash
-   * @param transfers
-   */
-  async parseTransfersOfBlock(hash: string, transfers: []) {
-    await Promise.all(
-      transfers.map(async (transferHash) => {
-        const exist = await models.Deploy.findOne({ where: { hash: transferHash } });
-        if (exist === null) {
-          await this.storeTransfer(transferHash, hash);
+      if (e instanceof Error && e.message === 'Promise timed out') {
+        if (retry < 5) {
+          await Helper.sleep(Math.floor(Math.random() * 5000));
+          await this.storeTransfer(transferHash, blockHash, retry + 1);
+        } else {
+          console.log(`\nFailed to retrieve transfer ${transferHash}. Timeout. Retry ${retry} out of 5`);
         }
-      }),
-    );
+      } else {
+        console.log(`\nFailed to retrieve transfer ${transferHash}`);
+        console.log(e);
+      }
+    }
   }
 
   /**
    * Parse all deploys
    */
   async parseAllDeploys() {
-    let i = 0;
-    let promises = [];
+    let promises: any[] = [];
+    let promisesResolved = 0;
     let throttleCounter = 0;
-    const totalDeploys = Object.values(this.deploysToParse)
-      .map((item) => item.deploy_hashes.length)
-      .reduce(this.sum, 0 as number);
+    let totalDeploys = 0;
+    Object.values(this.deploysToParse)
+      .forEach((item) => {
+        totalDeploys += item.deploy_hashes.length;
+      });
+
     const deploySpinner = ora({
       stream: process.stdout,
       isEnabled: true,
-      text: `Deploy parsed ${i} out of ${totalDeploys}`,
+      text: `Deploy parsed ${promisesResolved} out of ${totalDeploys}`,
     }).start();
+    const eta = makeEta();
     /* eslint-disable no-await-in-loop, no-restricted-syntax */
     for (const [hash, deploys] of Object.entries(this.deploysToParse)) {
-      if (throttleCounter > this.config.limitBulkInsert) {
-        deploySpinner.text = `Deploy parsed ${i} out of ${totalDeploys}. Waiting for all of them to be parsed and bulk insert them into the DB.`;
-        await Promise.all(promises);
-        await this.deploys.bulkCreate();
-        throttleCounter = 0;
+      for (const deployHash of deploys.deploy_hashes) {
+        await Helper.sleep(Math.floor(Math.random() * this.config.baseRandomThrottleNumber) + 5);
+        promises.push(
+          this.parseDeploy(deployHash, hash)
+            // eslint-disable-next-line @typescript-eslint/no-loop-func
+            .finally(() => promisesResolved++ && eta.report(promisesResolved / totalDeploys)),
+        );
+        throttleCounter++;
+        deploySpinner.text = `Deploy parsed ${promisesResolved} out of ${totalDeploys}. Aprox. ${eta.estimate().toFixed(0)} seconds left`;
+        if (throttleCounter % this.config.limitBulkInsert === 0) {
+          // eslint-disable-next-line @typescript-eslint/no-loop-func
+          const updateSpinner = setInterval(() => {
+            deploySpinner.text = `Deploy parsed ${promisesResolved} out of ${totalDeploys}. Aprox. ${eta.estimate().toFixed(0)} seconds left`;
+          }, 100);
+          await Promise.allSettled(promises);
+          clearInterval(updateSpinner);
+          deploySpinner.text = `Deploy parsed ${promisesResolved} out of ${totalDeploys}. Waiting for all of them to be parsed and bulk insert them into the DB.`;
+          await this.deploys.bulkCreate();
+        }
       }
-      await Helper.sleep(Math.floor(Math.random() * this.config.baseRandomThrottleNumber) + 1);
-      promises.push(this.parseDeploysOfBlock(hash, deploys.deploy_hashes));
-      i += deploys.deploy_hashes.length;
-      throttleCounter += deploys.deploy_hashes.length;
-      deploySpinner.text = `Deploy parsed ${i} out of ${totalDeploys}`;
     }
+    const updateSpinner = setInterval(() => {
+      deploySpinner.text = `Deploy parsed ${promisesResolved} out of ${totalDeploys}. Aprox. ${eta.estimate().toFixed(0)} seconds left`;
+    }, 100);
     /* eslint-enable no-await-in-loop, no-restricted-syntax */
-    deploySpinner.text = 'Waiting to parse all deploys... This might take a while.';
-    await Promise.all(promises);
+    await Promise.allSettled(promises);
+    clearInterval(updateSpinner);
+    deploySpinner.text = `Deploy parsed ${promisesResolved} out of ${totalDeploys}. Waiting for all of them to be parsed and bulk insert them into the DB.`;
     await this.deploys.bulkCreate();
-    deploySpinner.succeed('All deploys parsed.');
+    deploySpinner.succeed(`Deploy parsed ${promisesResolved} out of ${totalDeploys}. All deploys parsed.`);
 
     promises = [];
-    i = 0;
-    const totalTransfers = Object.values(this.deploysToParse)
-      .map((item) => item.transfer_hashes.length)
-      .reduce(this.sum, 0 as number);
+    promisesResolved = 0;
+    let totalTransfers = 0;
+    Object.values(this.deploysToParse)
+      .forEach((item) => {
+        totalTransfers += item.transfer_hashes.length;
+      });
+    eta.report(promisesResolved / totalTransfers);
     const transferSpinner = ora({
       stream: process.stdout,
       isEnabled: true,
-      text: `Transfer parsed ${i} out of ${totalTransfers}`,
+      text: `Transfer parsed ${promisesResolved} out of ${totalTransfers}. Aprox. ${eta.estimate().toFixed(0)} seconds left`,
     }).start();
     /* eslint-disable no-await-in-loop, no-restricted-syntax */
     for (const [hash, deploys] of Object.entries(this.deploysToParse)) {
-      if (throttleCounter > this.config.limitBulkInsert) {
-        transferSpinner.text = `Transfer parsed ${i} out of ${totalTransfers}. Waiting for all of them to be parsed and bulk insert them into the DB.`;
-        await Promise.all(promises);
-        await this.deploys.bulkCreate();
-        throttleCounter = 0;
+      for (const deployHash of deploys.transfer_hashes) {
+        await Helper.sleep(Math.floor(Math.random() * this.config.baseRandomThrottleNumber) + 5);
+        promises.push(
+          this.storeTransfer(deployHash, hash)
+            // eslint-disable-next-line @typescript-eslint/no-loop-func
+            .finally(() => promisesResolved++ && eta.report(promisesResolved / totalTransfers)),
+        );
+        throttleCounter++;
+        transferSpinner.text = `Transfer parsed ${promisesResolved} out of ${totalTransfers}. Aprox. ${eta.estimate().toFixed(0)} seconds left`;
+        if (throttleCounter % this.config.limitBulkInsert === 0) {
+          // eslint-disable-next-line @typescript-eslint/no-loop-func
+          const updateSpinnerThrottle = setInterval(() => {
+            transferSpinner.text = `Transfer parsed ${promisesResolved} out of ${totalTransfers}. Aprox. ${eta.estimate().toFixed(0)} seconds left`;
+          }, 100);
+          await Promise.allSettled(promises);
+          clearInterval(updateSpinnerThrottle);
+          transferSpinner.text = `Transfer parsed ${promisesResolved} out of ${totalTransfers}. Waiting for all of them to be parsed and bulk insert them into the DB.`;
+          await this.deploys.bulkCreate();
+        }
       }
-      await Helper.sleep(Math.floor(Math.random() * this.config.baseRandomThrottleNumber) + 1);
-      promises.push(this.parseTransfersOfBlock(hash, deploys.transfer_hashes));
-      i += deploys.transfer_hashes.length;
-      throttleCounter += deploys.transfer_hashes.length;
-      transferSpinner.text = `Transfer parsed ${i} out of ${totalTransfers}`;
     }
+    const updateSpinnerSettled = setInterval(() => {
+      transferSpinner.text = `Transfer parsed ${promisesResolved} out of ${totalTransfers}. Aprox. ${eta.estimate().toFixed(0)} seconds left`;
+    }, 100);
     /* eslint-enable no-await-in-loop, no-restricted-syntax */
-    transferSpinner.text = 'Waiting to parse all transfers... This might take a while.';
-    await Promise.all(promises);
+    await Promise.allSettled(promises);
+    clearInterval(updateSpinnerSettled);
+    transferSpinner.text = `Transfer parsed ${promisesResolved} out of ${totalTransfers}. Waiting for all of them to be parsed and bulk insert them into the DB.`;
     await this.deploys.bulkCreate();
-    transferSpinner.succeed('All transfers parsed.');
+    this.deploysToParse = {};
+    transferSpinner.succeed(`Transfer parsed ${promisesResolved} out of ${totalTransfers}. All transfers parsed.`);
   }
 }

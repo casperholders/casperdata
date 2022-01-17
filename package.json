@@ -30,15 +30,18 @@
     "typescript": "^4.4.2"
   },
   "dependencies": {
-    "casper-js-sdk": "^2.7.4",
+    "casper-js-sdk": "^2.7.5",
     "dotenv": "^10.0.0",
     "ora": "5.4.1",
     "pg": "^8.7.1",
     "pg-hstore": "^2.3.4",
     "sequelize": "^6.6.5",
-    "threads": "^1.7.0",
+    "simple-eta": "^3.0.2",
     "umzug": "^3.0.0-beta.16",
     "yargs": "^17.2.1"
+  },
+  "resolutions": {
+    "node-gyp": "^8"
   },
   "pkg": {
     "assets": [

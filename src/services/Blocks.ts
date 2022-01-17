@@ -1,5 +1,14 @@
 const models = require('../../models');
 
+type BlockType = {
+  hash: any
+  era: any
+  timestamp: any
+  height: any
+  era_end: boolean
+  validated: boolean
+};
+
 /**
  * Blocks class
  */
@@ -7,14 +16,8 @@ export default class Blocks {
   /**
    * Data object, serve as a storage will parsing
    */
-  data: {
-    hash: any;
-    era: any;
-    timestamp: any;
-    height: any;
-    era_end: boolean;
-    validated: boolean;
-  }[] = [];
+
+  data: Map<string, BlockType> = new Map<string, BlockType>();
 
   /**
    * Parse a deploy and insert it in the data object
@@ -23,7 +26,7 @@ export default class Blocks {
    * @param validated
    */
   upsertBlock(block: any, eraEnd: boolean, validated: boolean) {
-    this.data.push({
+    this.data.set(block.hash, {
       hash: block.hash,
       era: block.header.era_id,
       timestamp: block.header.timestamp,
@@ -38,7 +41,7 @@ export default class Blocks {
    * @param block
    */
   updateValidateBlock(block: any) {
-    this.data.push({
+    this.data.set(block.hash, {
       hash: block.hash,
       era: block.era,
       timestamp: block.timestamp,
@@ -52,10 +55,10 @@ export default class Blocks {
    * Bulk inset or update blocks contained in the data object
    */
   async bulkCreate() {
-    await models.Block.bulkCreate(this.data, {
+    await models.Block.bulkCreate(Array.from(this.data.values()), {
       fields: ['hash', 'era', 'timestamp', 'height', 'era_end', 'validated'],
       updateOnDuplicate: ['era', 'timestamp', 'height', 'era_end', 'validated'],
     });
-    this.data.length = 0;
+    this.data.clear();
   }
 }
