@@ -1,5 +1,10 @@
 # CasperData a Casper Blockchain parser
 [![codecov](https://codecov.io/gh/casperholders/casperdata/branch/main/graph/badge.svg?token=J111YFA2Q3)](https://codecov.io/gh/casperholders/casperdata)
+[![Lines of Code](https://sonarcloud.io/api/project_badges/measure?project=casperholders_casperdata&metric=ncloc)](https://sonarcloud.io/summary/new_code?id=casperholders_casperdata)
+[![Maintainability Rating](https://sonarcloud.io/api/project_badges/measure?project=casperholders_casperdata&metric=sqale_rating)](https://sonarcloud.io/summary/new_code?id=casperholders_casperdata)
+[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=casperholders_casperdata&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=casperholders_casperdata)
+[![Reliability Rating](https://sonarcloud.io/api/project_badges/measure?project=casperholders_casperdata&metric=reliability_rating)](https://sonarcloud.io/summary/new_code?id=casperholders_casperdata)
+[![Security Rating](https://sonarcloud.io/api/project_badges/measure?project=casperholders_casperdata&metric=security_rating)](https://sonarcloud.io/summary/new_code?id=casperholders_casperdata)
 
 Casper Data is an independent piece of software that parse the Casper Network blockchain into a postgresql database.
 
