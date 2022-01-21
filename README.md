@@ -12,7 +12,7 @@ You are free to build an API or any type of interaction with the database built 
 
 For example CasperHolders use [**postgrest**](https://postgrest.org/en/stable/) to serve a restful API from the database build by this software.
 
-The kubernetes configs are available freely in the kubernetes folder for you but that's specific to the CasperHolders infrastructure.
+The kubernetes configs are available freely in the kubernetes folder for you but that's specific to the CasperHolders infrastructure (or you can see the docker installation steps [here](https://postgrest.org/en/stable/install.html#docker)).
 
 The data parsed with this software are chosen especially for the CasperHolders needs. If you need / want other types of data feel free to open an issue or fork the repo.
 
