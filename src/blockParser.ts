@@ -165,12 +165,12 @@ export default class BlockParser {
       );
       blockSpinner.text = `Block parsed ${promisesResolved} out of ${end}. Aprox. ${eta.estimate().toFixed(0)} seconds left`;
     }
-    const interval = setInterval(() => {
+    const intervalSettled = setInterval(() => {
       blockSpinner.text = `Block parsed ${promisesResolved} out of ${end}. Aprox. ${eta.estimate().toFixed(0)} seconds left`;
     }, 100);
     /* eslint-enable no-await-in-loop */
     await Promise.allSettled(promises);
-    clearInterval(interval);
+    clearInterval(intervalSettled);
     blockSpinner.text = `Block parsed ${promisesResolved} out of ${end}. Waiting for all of them to be parsed and bulk insert them into the DB.`;
     await this.blocks.bulkCreate();
     blockSpinner.succeed('All blocks parsed.');
@@ -218,12 +218,12 @@ export default class BlockParser {
       blockCount++;
       blockSpinner.text = `Block parsed ${promisesResolved} out of ${missingBlocks.length}. Aprox. ${eta.estimate().toFixed(0)} seconds left`;
     }
-    const interval = setInterval(() => {
+    const intervalSettled = setInterval(() => {
       blockSpinner.text = `Block parsed ${promisesResolved} out of ${missingBlocks.length}. Aprox. ${eta.estimate().toFixed(0)} seconds left`;
     }, 100);
     /* eslint-enable no-await-in-loop, no-restricted-syntax */
     await Promise.allSettled(promises);
-    clearInterval(interval);
+    clearInterval(intervalSettled);
     blockSpinner.text = `Block parsed ${promisesResolved} out of ${missingBlocks.length}. Waiting for all of them to be parsed and bulk insert them into the DB.`;
     await this.blocks.bulkCreate();
     blockSpinner.succeed('All blocks parsed.');
@@ -286,12 +286,12 @@ export default class BlockParser {
         blockCount++;
         blockSpinner.text = `Block validated ${promisesResolved} out of ${unvalidatedBlocks.length}. Aprox. ${eta.estimate().toFixed(0)} seconds left`;
       }
-      const interval = setInterval(() => {
+      const intervalSettled = setInterval(() => {
         blockSpinner.text = `Block validated ${promisesResolved} out of ${unvalidatedBlocks.length}. Aprox. ${eta.estimate().toFixed(0)} seconds left`;
       }, 100);
       /* eslint-enable no-await-in-loop, no-restricted-syntax */
       await Promise.allSettled(promises);
-      clearInterval(interval);
+      clearInterval(intervalSettled);
       blockSpinner = blockSpinner.stopAndPersist({
         symbol: '🕐',
         text: `Block validated ${promisesResolved} out of ${unvalidatedBlocks.length}. Waiting to parse missing deploys.`,

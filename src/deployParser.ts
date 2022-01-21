@@ -327,12 +327,12 @@ export default class DeployParser {
         }
       }
     }
-    const updateSpinner = setInterval(() => {
+    const updateDeploySpinnerSettled = setInterval(() => {
       deploySpinner.text = `Deploy parsed ${promisesResolved} out of ${totalDeploys}. Aprox. ${eta.estimate().toFixed(0)} seconds left`;
     }, 100);
     /* eslint-enable no-await-in-loop, no-restricted-syntax */
     await Promise.allSettled(promises);
-    clearInterval(updateSpinner);
+    clearInterval(updateDeploySpinnerSettled);
     deploySpinner.text = `Deploy parsed ${promisesResolved} out of ${totalDeploys}. Waiting for all of them to be parsed and bulk insert them into the DB.`;
     await this.deploys.bulkCreate();
     deploySpinner.succeed(`Deploy parsed ${promisesResolved} out of ${totalDeploys}. All deploys parsed.`);
