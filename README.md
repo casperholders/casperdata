@@ -22,6 +22,9 @@ The data parsed with this software are chosen especially for the CasperHolders n
 - Casper JS SDK doesn't support all types conversion to toBytes for now so some deploy can't be parsed.
 (70~ in testnet & 2~ in mainnet). The next release of the software will self-heal when the SDK will support those types.
 
+- If the software is reporting a lot of timeout you can change the BASE_RANDOM_THROTTLE_NUMBER to a higher value (Can be usefull if you have a bad internet connection or your computer / server is located outside of EU this a majority of node are EU based)
+- In the event of the software crash because of a heap memory issue you can increase the node heap or lower the LIMIT_BULK_INSERT (this will do more frequent insert in the database)
+
 # Next features
 
 [ ] Staking rewards
@@ -92,7 +95,7 @@ No api endpoint are available with this software.
 DATABASE_URL=postgres://postgres:mysecretpassword@127.0.0.1:5432/testnet //Example of database url for postgres
 RPC_URL=http://localhost:8080/rpc //Example of url for a casper node url
 LIMIT_BULK_INSERT=10000 //Limit of entries to insert at once in the DB
-BASE_RANDOM_THROTTLE_NUMBER=3 //Base random throttle number use to throttle RPC call. Random number number generated will range from 1 and n+1
+BASE_RANDOM_THROTTLE_NUMBER=100 //Base random throttle number use to throttle RPC call. Random number number generated will range from 1 and n+1
 NODE_ENV=production //Node environnement. Used primarily to define which database config to use.
 LOOP=60 //If set the programm will loop every x seconds
 ```
