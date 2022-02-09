@@ -82,8 +82,9 @@ export default class BlockParser {
    * Parse block and push deploys to be parsed
    * @param height
    * @param preFetchedBlock
+   * @param retry
    */
-  async parseBlock(height: number, preFetchedBlock?: any) {
+  async parseBlock(height: number, preFetchedBlock?: any, retry: number = 0) {
     try {
       await this.parseAndFetchBlock(height, preFetchedBlock);
     } catch (e) {
@@ -92,8 +93,12 @@ export default class BlockParser {
       } else {
         console.log(`\nRetry block ${height} not found.`);
       }
-      await Helper.sleep(Math.floor(Math.random() * 5000));
-      await this.parseBlock(height, preFetchedBlock);
+      if (retry < 5) {
+        await Helper.sleep(Math.floor(Math.random() * 5000));
+        await this.parseBlock(height, preFetchedBlock, retry + 1);
+      } else {
+        console.log(`\nSkipping block ${height} too much timeout.`);
+      }
     }
   }
 
@@ -339,9 +344,11 @@ export default class BlockParser {
   async parseAllBlocks() {
     const missingBlocks: any = await this.findMissingBlock();
     if (missingBlocks.length > 0) {
+      console.log(`\n${missingBlocks.length} blocks missing in the database. Will fetch them first and resume the sync right after.\n`);
       await this.parseArray(missingBlocks.map(
         (missingBlock: any) => Number(missingBlock.missing),
       ));
+      console.log('\nResuming sync now.\n');
     }
 
     const latestBlock = await new CasperServiceByJsonRPC(this.rpc).getLatestBlockInfo();
