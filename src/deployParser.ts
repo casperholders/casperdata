@@ -289,7 +289,7 @@ export default class DeployParser {
    * Parse all deploys
    */
   async parseAllDeploys() {
-    let promises: any[] = [];
+    const promises: any[] = [];
     let promisesResolved = 0;
     let throttleCounter = 0;
     let totalDeploys = 0;
@@ -324,7 +324,7 @@ export default class DeployParser {
           clearInterval(updateSpinner);
           deploySpinner.text = `Deploy parsed ${promisesResolved} out of ${totalDeploys}. Waiting for all of them to be parsed and bulk insert them into the DB.`;
           await this.deploys.bulkCreate();
-          promises = [];
+          promises.length = 0;
         }
       }
     }
@@ -338,7 +338,7 @@ export default class DeployParser {
     await this.deploys.bulkCreate();
     deploySpinner.succeed(`Deploy parsed ${promisesResolved} out of ${totalDeploys}. All deploys parsed.`);
 
-    promises = [];
+    promises.length = 0;
     promisesResolved = 0;
     let totalTransfers = 0;
     Object.values(this.deploysToParse)
@@ -371,7 +371,7 @@ export default class DeployParser {
           clearInterval(updateSpinnerThrottle);
           transferSpinner.text = `Transfer parsed ${promisesResolved} out of ${totalTransfers}. Waiting for all of them to be parsed and bulk insert them into the DB.`;
           await this.deploys.bulkCreate();
-          promises = [];
+          promises.length = 0;
         }
       }
     }
@@ -385,6 +385,6 @@ export default class DeployParser {
     await this.deploys.bulkCreate();
     this.deploysToParse = {};
     transferSpinner.succeed(`Transfer parsed ${promisesResolved} out of ${totalTransfers}. All transfers parsed.`);
-    promises = [];
+    promises.length = 0;
   }
 }
