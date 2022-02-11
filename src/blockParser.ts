@@ -161,6 +161,7 @@ export default class BlockParser {
         await this.blocks.bulkCreate();
         await this.deployParser.parseAllDeploys();
         blockSpinner.start(`Block parsed ${promisesResolved} out of ${end}. Aprox. ${eta.estimate().toFixed(0)} seconds left`);
+        promises.length = 0;
       }
       await Helper.sleep(Math.floor(Math.random() * this.config.baseRandomThrottleNumber) + 5);
       promises.push(
@@ -181,6 +182,7 @@ export default class BlockParser {
     blockSpinner.succeed('All blocks parsed.');
 
     await this.deployParser.parseAllDeploys();
+    promises.length = 0;
   }
 
   /**
@@ -213,6 +215,7 @@ export default class BlockParser {
         await this.blocks.bulkCreate();
         await this.deployParser.parseAllDeploys();
         blockSpinner.start(`Block parsed ${promisesResolved} out of ${missingBlocks.length}. Aprox. ${eta.estimate().toFixed(0)} seconds left`);
+        promises.length = 0;
       }
       await Helper.sleep(Math.floor(Math.random() * this.config.baseRandomThrottleNumber) + 5);
       promises.push(
@@ -233,6 +236,7 @@ export default class BlockParser {
     await this.blocks.bulkCreate();
     blockSpinner.succeed('All blocks parsed.');
     await this.deployParser.parseAllDeploys();
+    promises.length = 0;
   }
 
   /**
@@ -279,6 +283,7 @@ export default class BlockParser {
           blockSpinner.start(`Block validated ${promisesResolved} out of ${unvalidatedBlocks.length}. Waiting to bulk insert blocks & deploys.`);
           await this.deploys.bulkCreate();
           await this.blocks.bulkCreate();
+          promises.length = 0;
         }
         await Helper.sleep(Math.floor(Math.random() * this.config.baseRandomThrottleNumber) + 5);
         promises.push(
@@ -306,6 +311,7 @@ export default class BlockParser {
       await this.deploys.bulkCreate();
       await this.blocks.bulkCreate();
       blockSpinner.succeed('All blocks validated.');
+      promises.length = 0;
     }
   }
 

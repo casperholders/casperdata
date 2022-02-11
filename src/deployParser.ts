@@ -324,6 +324,7 @@ export default class DeployParser {
           clearInterval(updateSpinner);
           deploySpinner.text = `Deploy parsed ${promisesResolved} out of ${totalDeploys}. Waiting for all of them to be parsed and bulk insert them into the DB.`;
           await this.deploys.bulkCreate();
+          promises = [];
         }
       }
     }
@@ -370,6 +371,7 @@ export default class DeployParser {
           clearInterval(updateSpinnerThrottle);
           transferSpinner.text = `Transfer parsed ${promisesResolved} out of ${totalTransfers}. Waiting for all of them to be parsed and bulk insert them into the DB.`;
           await this.deploys.bulkCreate();
+          promises = [];
         }
       }
     }
@@ -383,5 +385,6 @@ export default class DeployParser {
     await this.deploys.bulkCreate();
     this.deploysToParse = {};
     transferSpinner.succeed(`Transfer parsed ${promisesResolved} out of ${totalTransfers}. All transfers parsed.`);
+    promises = [];
   }
 }
