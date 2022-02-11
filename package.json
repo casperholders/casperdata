@@ -50,7 +50,7 @@
     ],
     "scripts": "dist/**/*.js",
     "targets": [
-      "latest-linux-x64"
+      "node16-linux-x64"
     ],
     "outputPath": "bin"
   }
