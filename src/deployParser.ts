@@ -383,7 +383,9 @@ export default class DeployParser {
     clearInterval(updateSpinnerSettled);
     transferSpinner.text = `Transfer parsed ${promisesResolved} out of ${totalTransfers}. Waiting for all of them to be parsed and bulk insert them into the DB.`;
     await this.deploys.bulkCreate();
-    this.deploysToParse = {};
+    Object.getOwnPropertyNames(this.deploysToParse).forEach((prop) => {
+      delete this.deploysToParse[prop];
+    });
     transferSpinner.succeed(`Transfer parsed ${promisesResolved} out of ${totalTransfers}. All transfers parsed.`);
     promises.length = 0;
   }
