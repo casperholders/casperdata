@@ -40,7 +40,7 @@ interface BlocksDeploys {
 export default class DeployParser {
   deploysToParse: BlocksDeploys = {};
 
-  rpc: string;
+  casperClient: CasperClient;
 
   deploys: Deploys;
 
@@ -53,7 +53,7 @@ export default class DeployParser {
    * @param config
    */
   constructor(rpc: string, deploys: Deploys, config: Config) {
-    this.rpc = rpc;
+    this.casperClient = new CasperClient(rpc);
     this.deploys = deploys;
     this.config = config;
   }
@@ -84,7 +84,7 @@ export default class DeployParser {
   async parseDeploy(deployHash: string, blockHash: string, retry: number = 0) {
     try {
       const deploy = await Helper.promiseWithTimeout(
-        new CasperClient(this.rpc).getDeploy(deployHash),
+        this.casperClient.getDeploy(deployHash),
         5000,
       );
       if (deploy[0].session.isModuleBytes()) {
@@ -255,7 +255,7 @@ export default class DeployParser {
   async storeTransfer(transferHash: string, blockHash: string, retry: number = 0) {
     try {
       const transfer = await Helper.promiseWithTimeout(
-        new CasperClient(this.rpc).getDeploy(transferHash),
+        this.casperClient.getDeploy(transferHash),
         5000,
       );
 
@@ -383,7 +383,9 @@ export default class DeployParser {
     clearInterval(updateSpinnerSettled);
     transferSpinner.text = `Transfer parsed ${promisesResolved} out of ${totalTransfers}. Waiting for all of them to be parsed and bulk insert them into the DB.`;
     await this.deploys.bulkCreate();
-    this.deploysToParse = {};
+    Object.getOwnPropertyNames(this.deploysToParse).forEach((prop) => {
+      delete this.deploysToParse[prop];
+    });
     transferSpinner.succeed(`Transfer parsed ${promisesResolved} out of ${totalTransfers}. All transfers parsed.`);
     promises.length = 0;
   }

@@ -18,7 +18,7 @@ const CONCURRENT_QUERY_TIME_LIMIT = parseInt(process.env.CONCURRENT_QUERY_TIME_L
 export default class BlockParser {
   deployParser: DeployParser;
 
-  rpc: string;
+  casperService: CasperServiceByJsonRPC;
 
   blocks: Blocks;
 
@@ -41,7 +41,7 @@ export default class BlockParser {
     deploys: Deploys,
     config: Config,
   ) {
-    this.rpc = rpc;
+    this.casperService = new CasperServiceByJsonRPC(rpc);
     this.deployParser = deployParser;
     this.blocks = blocks;
     this.deploys = deploys;
@@ -55,7 +55,7 @@ export default class BlockParser {
   async fetchBlock(height: number) {
     try {
       return (await Helper.promiseWithTimeout(
-        new CasperServiceByJsonRPC(this.rpc).getBlockInfoByHeight(height),
+        this.casperService.getBlockInfoByHeight(height),
         10000,
       )).block;
     } catch (e) {
@@ -67,7 +67,7 @@ export default class BlockParser {
       if (blockToFetch) {
         try {
           return (await Helper.promiseWithTimeout(
-            new CasperServiceByJsonRPC(this.rpc).getBlockInfo(blockToFetch.hash),
+            this.casperService.getBlockInfo(blockToFetch.hash),
             10000,
           )).block;
         } catch (error) {
@@ -366,7 +366,7 @@ export default class BlockParser {
       console.log('\nResuming sync now.\n');
     }
 
-    const latestBlock = await new CasperServiceByJsonRPC(this.rpc).getLatestBlockInfo();
+    const latestBlock = await this.casperService.getLatestBlockInfo();
     if (latestBlock.block == null) {
       console.log('Unable to retrieve last block from the blockchain');
       return;
