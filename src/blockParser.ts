@@ -225,6 +225,7 @@ export default class BlockParser {
         promises.length = 0;
       }
       await Helper.sleep(Math.floor(Math.random() * this.config.baseRandomThrottleNumber) + 5);
+
       const me = Symbol();
       promises.push(
         queue.wait(me, 0)
@@ -273,6 +274,7 @@ export default class BlockParser {
         isEnabled: true,
         text: `Block validated ${promisesResolved} out of ${unvalidatedBlocks.length}`,
       }).start();
+      const queue = new Queue(CONCURRENT_QUERY_LIMIT, CONCURRENT_QUERY_TIME_LIMIT);
       const promises = [];
       const eta = makeEta();
       /* eslint-disable no-await-in-loop, no-restricted-syntax */
@@ -295,8 +297,12 @@ export default class BlockParser {
           promises.length = 0;
         }
         await Helper.sleep(Math.floor(Math.random() * this.config.baseRandomThrottleNumber) + 5);
+        
+        const me = Symbol();
         promises.push(
-          this.validateBlock(unvalidatedBlock)
+          queue.wait(me, 0)
+            .then(() => this.validateBlock(unvalidatedBlock))
+            .finally(() => queue.end(me))
             .finally(
               // eslint-disable-next-line @typescript-eslint/no-loop-func
               () => promisesResolved++ && eta.report(promisesResolved / unvalidatedBlocks.length),
