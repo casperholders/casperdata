@@ -21,6 +21,21 @@ steps [here](https://postgrest.org/en/stable/install.html#docker)).
 The data parsed with this software are chosen especially for the CasperHolders needs. If you need / want other types of
 data feel free to open an issue or fork the repo.
 
+# Node version
+
+**We're only supporting the Node 16 LTS version for now**
+
+Install nvm : [Installation instructions](https://github.com/nvm-sh/nvm)
+
+```sh
+curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.1/install.sh | bash
+export NVM_DIR="$([ -z "${XDG_CONFIG_HOME-}" ] && printf %s "${HOME}/.nvm" || printf %s "${XDG_CONFIG_HOME}/nvm")"
+[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh" # This loads nvm
+
+nvm install 16 #Install node 16
+corepack enable #Enable corepack (includes yarn)
+```
+
 # Bugs
 
 - Casper JS SDK doesn't support all types conversion to toBytes for now so some deploy can't be parsed.
