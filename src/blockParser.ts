@@ -6,10 +6,12 @@ import { CasperServiceByJsonRPC } from 'casper-js-sdk';
 import Blocks from './services/Blocks';
 import Deploys from './services/Deploys';
 import makeEta from 'simple-eta';
+import Queue from 'async-await-queue';
 
 const models = require('../models');
 const { QueryTypes } = require('sequelize');
-
+const CONCURRENT_QUERY_LIMIT = parseInt(process.env.CONCURRENT_QUERY_LIMIT as string, 10) ?? 1000;
+const CONCURRENT_QUERY_TIME_LIMIT = parseInt(process.env.CONCURRENT_QUERY_TIME_LIMIT as string, 10) ?? 1;
 /**
  * Class BlockParser
  */
@@ -142,7 +144,8 @@ export default class BlockParser {
       isEnabled: true,
       text: `Block parsed ${i} out of ${end}`,
     }).start();
-    const promises = [];
+    const queue = new Queue(CONCURRENT_QUERY_LIMIT, CONCURRENT_QUERY_TIME_LIMIT);
+    const promises = []
     let promisesResolved = i;
     const eta = makeEta();
     /* eslint-disable no-await-in-loop */
@@ -164,8 +167,12 @@ export default class BlockParser {
         promises.length = 0;
       }
       await Helper.sleep(Math.floor(Math.random() * this.config.baseRandomThrottleNumber) + 5);
+
+      const me = Symbol();
       promises.push(
-        this.parseBlock(i)
+        queue.wait(me, 0)
+          .then(() => this.parseBlock(i))
+          .finally(() => queue.end(me))
           // eslint-disable-next-line @typescript-eslint/no-loop-func
           .finally(() => promisesResolved++ && eta.report(promisesResolved / end)),
       );
@@ -182,7 +189,6 @@ export default class BlockParser {
     blockSpinner.succeed('All blocks parsed.');
 
     await this.deployParser.parseAllDeploys();
-    promises.length = 0;
   }
 
   /**
@@ -197,6 +203,7 @@ export default class BlockParser {
       isEnabled: true,
       text: `Block parsed ${promisesResolved} out of ${missingBlocks.length}`,
     }).start();
+    const queue = new Queue(CONCURRENT_QUERY_LIMIT, CONCURRENT_QUERY_TIME_LIMIT);
     const promises = [];
     const eta = makeEta();
     /* eslint-disable no-await-in-loop, no-restricted-syntax */
@@ -218,8 +225,11 @@ export default class BlockParser {
         promises.length = 0;
       }
       await Helper.sleep(Math.floor(Math.random() * this.config.baseRandomThrottleNumber) + 5);
+      const me = Symbol();
       promises.push(
-        this.parseBlock(missingBlock)
+        queue.wait(me, 0)
+          .then(() => this.parseBlock(missingBlock))
+          .finally(() => queue.end(me))
           // eslint-disable-next-line @typescript-eslint/no-loop-func
           .finally(() => promisesResolved++ && eta.report(promisesResolved / missingBlocks.length)),
       );
@@ -236,7 +246,6 @@ export default class BlockParser {
     await this.blocks.bulkCreate();
     blockSpinner.succeed('All blocks parsed.');
     await this.deployParser.parseAllDeploys();
-    promises.length = 0;
   }
 
   /**

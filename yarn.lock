@@ -1289,6 +1289,11 @@ assert-plus@^1.0.0:
   resolved "https://registry.yarnpkg.com/assert-plus/-/assert-plus-1.0.0.tgz#f12e0f3c5d77b0b1cdd9146942e4e96c1e4dd525"
   integrity sha1-8S4PPF13sLHN2RRpQuTpbB5N1SU=
 
+async-await-queue@^1.2.0:
+  version "1.2.0"
+  resolved "https://registry.yarnpkg.com/async-await-queue/-/async-await-queue-1.2.0.tgz#bd71eef4ada7b63a5c13bcb72f5c01a2575d2d02"
+  integrity sha512-Biup5C0vGEnfzzK+ufXvYan2/YK5lga+B5xj/IGmED82MLbUOI8VUB4BZ9JW9qLLB4HU/p7Ca29epJDNTEMEhg==
+
 asynckit@^0.4.0:
   version "0.4.0"
   resolved "https://registry.yarnpkg.com/asynckit/-/asynckit-0.4.0.tgz#c79ed97f7f34cb8f2ba1bc9790bcc366474b4b79"
