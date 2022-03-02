@@ -29,6 +29,21 @@ describe('Test blockParser class', () => {
     expect(block?.header.height).toEqual(1);
   });
 
+  it('Shouldn\'t retrieve a block', async () => {
+    expect.assertions(1);
+    const deploys = new Deploys();
+    const config = new Config({});
+    const deployParser = new DeployParser(rpc, deploys, config);
+    const blockParser = new BlockParser(rpc, deployParser, new Blocks(), deploys, config);
+    try {
+      await blockParser.fetchBlock(-1);
+    } catch (e) {
+      if (e instanceof Error) {
+        expect(e.message).toEqual('Returned block does not have a matching height.');
+      }
+    }
+  });
+
   it('Should parse an interval', async () => {
     const deploys = new Deploys();
     const blocks = new Blocks();
@@ -39,6 +54,29 @@ describe('Test blockParser class', () => {
     const databaseBlocks = await models.Block.findAll();
 
     expect(databaseBlocks.length).toEqual(10);
+  });
+
+  it('Shouldn\'t parse an interval', async () => {
+    expect.assertions(2);
+    const deploys = new Deploys();
+    const blocks = new Blocks();
+    const config = new Config({});
+    const deployParser = new DeployParser(rpc, deploys, config);
+    const blockParser = new BlockParser(rpc, deployParser, blocks, deploys, config);
+    try {
+      await blockParser.parseInterval(-2, -1);
+    } catch (e) {
+      if (e instanceof Error) {
+        expect(e.message).toEqual('Interval numbers should be > 0');
+      }
+    }
+    try {
+      await blockParser.parseInterval(2, 1);
+    } catch (e) {
+      if (e instanceof Error) {
+        expect(e.message).toEqual('Start shouldn\'t be higher than end');
+      }
+    }
   });
 
   it('Should parse an array', async () => {

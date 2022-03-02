@@ -32,6 +32,25 @@ describe('Test blocks class', () => {
     expect(databaseBlocks[0].validated).toEqual(false);
   });
 
+  it('shouldn\'t create a block', async () => {
+    const blocks = new Blocks();
+
+    blocks.upsertBlock({
+      header: {
+        era_id: 925,
+        timestamp: '2021-06-16T21:02:33.472Z',
+        height: 100000,
+      },
+    }, true, false);
+    try {
+      await blocks.bulkCreate();
+    } catch (e) {
+      if (e instanceof Error) {
+        expect(e.message).toEqual('Validation error');
+      }
+    }
+  });
+
   it('should validate a block', async () => {
     const blocks = new Blocks();
 

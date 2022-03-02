@@ -73,7 +73,6 @@ export default class BlockParser {
           throw error;
         }
       }
-      console.log(`Cannot fetch block ${height}`);
       throw e;
     }
   }
@@ -136,6 +135,12 @@ export default class BlockParser {
    * @param end
    */
   async parseInterval(start: number, end: number) {
+    if (start < 0 || end < 0) {
+      throw new Error('Interval numbers should be > 0');
+    }
+    if (start > end) {
+      throw new Error('Start shouldn\'t be higher than end');
+    }
     let i = start;
     let blockSpinner = ora({
       stream: process.stdout,

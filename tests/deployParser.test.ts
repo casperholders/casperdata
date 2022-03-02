@@ -20,7 +20,7 @@ const models = require('../models');
 
 const rpc = 'http://rpc.testnet.casperholders.com/rpc';
 
-jest.setTimeout(50000);
+jest.setTimeout(60000);
 
 function randomDeploy(
   session: DeployUtil.ExecutableDeployItem,
@@ -180,6 +180,35 @@ describe('Test deployParser class', () => {
       target: 'ac916b2479626db496440785d12245c9979cdb01416255cef49a4788d911a6e5',
       id: '1234',
     });
+  });
+
+  it('Shouldn\'t parse a bad deploy', async () => {
+    const blocks = new Blocks();
+
+    blocks.upsertBlock({
+      hash: 'b2013d62225ad3704dd5bc0af5fc665ff16e804ccf7b03cf028c86c7185dc984',
+      header: {
+        era_id: 2629,
+        timestamp: '2021-11-14T15:18:12.224Z',
+        height: 296409,
+      },
+    }, false, false);
+
+    await blocks.bulkCreate();
+
+    const deploys = new Deploys();
+    const config = new Config({});
+    const deployParser = new DeployParser(rpc, deploys, config);
+    await deployParser.storeTransfer('aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa', 'b2013d62225ad3704dd5bc0af5fc665ff16e804ccf7b03cf028c86c7185dc984');
+    await deploys.bulkCreate();
+
+    const databaseDeploys = await models.Deploy.findAll({
+      where: {
+        hash: 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+      },
+    });
+
+    expect(databaseDeploys.length).toEqual(0);
   });
 
   const dataSet = [
