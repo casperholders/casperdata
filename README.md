@@ -67,7 +67,7 @@ We recommend you to use a postgresql database with this software. We won't offic
 Exemple to run a local postgres db :
 
 ```bash
-sudo docker run --name some-postgres -p 5432:5432 -e POSTGRES_PASSWORD=mysecretpassword -e POSTGRES_DB=testnet -d postgres
+sudo docker run --name some-postgres -p 127.0.0.1:5432:5432 -e POSTGRES_PASSWORD=mysecretpassword -e POSTGRES_DB=testnet -d postgres
 ```
 
 The different .env file are here only for example. When you run the project locally it will use the .env file and the
