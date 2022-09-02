@@ -1,4 +1,4 @@
-import { CLPublicKey, GetDeployResult } from 'casper-js-sdk';
+import { CLPublicKey, CLURef, GetDeployResult, UREF_ID } from 'casper-js-sdk';
 import { Deploy } from 'casper-js-sdk/dist/lib/DeployUtil';
 
 /**
@@ -99,6 +99,9 @@ export default class Helper {
   static accountHashHex(deploy: [Deploy, GetDeployResult]) {
     const argument = deploy[0].session.getArgByName('target');
     if (argument && argument.value()) {
+      if (argument.clType().toString() === UREF_ID) {
+        return (argument as CLURef).toFormattedStr();
+      }
       return Buffer.from(argument.value()).toString('hex');
     }
     return '';

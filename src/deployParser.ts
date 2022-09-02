@@ -80,6 +80,7 @@ export default class DeployParser {
    * Fetch & parse deploy for a given hash
    * @param deployHash
    * @param blockHash
+   * @param retry
    */
   async parseDeploy(deployHash: string, blockHash: string, retry: number = 0) {
     try {
@@ -100,7 +101,7 @@ export default class DeployParser {
           await this.parseDeploy(deployHash, blockHash, retry + 1);
         }
       } else {
-        console.log(`\nFailed to fetch deploy : ${deployHash} ${typeof e}`);
+        console.log(`\nFailed to fetch deploy : ${deployHash} ${e}`);
         console.log(e);
       }
     }
